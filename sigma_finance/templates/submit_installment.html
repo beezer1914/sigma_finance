@@ -1,0 +1,14 @@
+<!-- templates/payments/submit_installment.html -->
+{% extends "base.html" %}
+{% block content %}
+<h3>Submit Installment Payment</h3>
+<p>Plan Total: ${{ plan.total_amount }} | Installment: ${{ plan.installment_amount }}</p>
+
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <div class="form-group">
+  {{ form.amount.label }} {{ form.amount(size=20) }}<br>
+  {{ form.method.label }} {{ form.method() }}<br>
+  <input type="submit" value="Submit Payment">
+</form>
+{% endblock %}

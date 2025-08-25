@@ -1,0 +1,50 @@
+<div class="max-w-xl mx-auto px-4 py-6">
+  <h2 class="text-2xl font-bold text-gray-800 mb-4">Add New Member</h2>
+
+  <form method="POST" action="{{ url_for('treasurer_bp.add_member') }}" class="space-y-4 bg-white p-6 rounded-lg shadow">
+    {{ csrf_token() }}  <!-- CSRF protection if using Flask-WTF -->
+
+    <!-- Full Name -->
+    <div>
+      <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+      <input type="text" name="name" id="name" required
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+      <input type="email" name="email" id="email" required
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <!-- Role -->
+    <div>
+      <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+      <select name="role" id="role" required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        <option value="Member">Member</option>
+        <option value="Treasurer">Treasurer</option>
+        <option value="President">President</option>
+        <option value="Secretary">Secretary</option>
+      </select>
+    </div>
+
+    <!-- Password -->
+    <div>
+      <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+      <input type="password" name="password" id="password" required autocomplete="new-password"
+             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <!-- Submit & Cancel -->
+    <div class="pt-4">
+      <button type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Add Member
+      </button>
+      <a href="{{ url_for('treasurer_bp.members') }}"
+         class="ml-4 text-sm text-gray-600 hover:underline">Cancel</a>
+    </div>
+  </form>
+</div>

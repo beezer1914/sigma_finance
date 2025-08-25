@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-4">Manage Members</h1>
+
+  <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Name</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Email</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Role</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr class="border-t">
+        <td class="px-4 py-2 font-medium">{{ user.name }}</td>
+        <td class="px-4 py-2 text-sm text-gray-600">{{ user.email }}</td>
+        <td class="px-4 py-2 text-sm text-gray-500">{{ user.role }}</td>
+        <td class="px-4 py-2 text-sm">
+          <span class="{{ 'text-green-600' if user.is_active else 'text-red-600' }}">
+            {{ 'Active' if user.is_active else 'Inactive' }}
+          </span>
+        </td>
+        <td class="px-4 py-2 space-x-4 text-sm">
+          <a href="{{ url_for('treasurer_bp.edit_member', member_id=user.id) }}" class="text-blue-600 hover:underline">Edit</a>
+
+          {% if user.is_active %}
+          <form action="{{ url_for('treasurer_bp.deactivate_member', member_id=user.id) }}" method="post" class="inline">
+            <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Deactivate {{ user.name }}?')">
+              Deactivate
+            </button>
+          </form>
+          {% else %}
+          <form action="{{ url_for('treasurer_bp.activate_member', member_id=user.id) }}" method="post" class="inline">
+            <button type="submit" class="text-green-600 hover:underline" onclick="return confirm('Activate {{ user.name }}?')">
+              Activate
+            </button>
+          </form>
+          {% endif %}
+
+          <form action="{{ url_for('treasurer_bp.reset_user_payments', user_id=user.id) }}" method="post" class="inline">
+            <button type="submit" class="text-yellow-600 hover:underline" onclick="return confirm('Reset payments for {{ user.name }}?')">
+              Reset Payments
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

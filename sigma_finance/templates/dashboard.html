@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Member Greeting Card -->
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Welcome, {{ current_user.name }}</h2>
+    <p class="text-gray-600">Your personal dashboard</p>
+  </div>
+
+  <!-- Payment Plan Card -->
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">Payment Plan Overview</h3>
+    {% if plan %}
+      <p class="text-gray-700 space-y-1">
+        <strong>Total:</strong> ${{ plan.total_amount }}<br>
+        <strong>Installment:</strong> ${{ plan.installment_amount }}<br>
+        <strong>Status:</strong>
+        <span class="px-2 py-1 rounded text-white text-sm font-semibold
+          {% if plan.status == 'Active' %}
+            bg-green-600
+          {% elif plan.status == 'Completed' %}
+            bg-blue-600
+          {% else %}
+            bg-red-600
+          {% endif %}
+        ">
+          {{ plan.status }}
+        </span><br>
+        <strong>Remaining Balance:</strong> ${{ remaining_balance }}
+      </p>
+
+      <!-- Progress Bar -->
+      <div class="mt-4">
+        <div class="text-sm text-gray-600 mb-1">Progress: {{ percent_paid }}%</div>
+        <div class="w-full bg-gray-200 rounded-full h-4">
+          <div class="bg-blue-500 h-4 rounded-full transition-all duration-300 ease-in-out" style="width: {{ percent_paid }}%;"></div>
+        </div>
+      </div>
+
+      {% if plan.status == 'Active' %}
+        <a href="{{ url_for('payments.pay') }}" class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Make Installment Payment
+        </a>
+      {% else %}
+        <p class="mt-4 text-green-700 font-medium">🎉 Your payment plan is complete!</p>
+      {% endif %}
+    {% else %}
+      <p class="text-gray-700">No active payment plan.</p>
+      <div class="mt-4 space-x-2">
+        <a href="{{ url_for('payments.plan') }}" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">Enroll in a Plan</a>
+        <a href="{{ url_for('payments.pay') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">One-Time Payment</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Payment History Card -->
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-2">Payment History</h3>
+    {% if payments %}
+      <ul class="list-disc list-inside text-gray-700">
+        {% for payment in payments %}
+          <li>${{ payment.amount }} on {{ payment.date.strftime('%Y-%m-%d') }} via {{ payment.method }} ({{ payment.type }})</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-gray-700">No payments recorded yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
