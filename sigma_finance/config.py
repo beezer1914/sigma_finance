@@ -1,11 +1,12 @@
 import os
+from flask import app
 
 # Base directory of the project
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # SQLite database path (absolute)
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "../instance/site.db")
+    SQLALCHEMY_DATABASE_URI = app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 
     # Disable modification tracking to save resources
     SQLALCHEMY_TRACK_MODIFICATIONS = False
