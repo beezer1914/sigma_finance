@@ -1,1 +1,1 @@
-web: gunicorn app:app.py
+web: gunicorn sigma_finance.app:app
