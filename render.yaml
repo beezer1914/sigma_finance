@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: sigma-finance
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn sigma_finance.app:app
+    rootDir: sigma_finance
