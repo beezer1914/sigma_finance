@@ -10,6 +10,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(20), default="member")  # 'admin', 'treasurer','member'
     status = db.Column(db.Boolean, default=True)
     financial_status = db.Column(db.String(20), default="not financial")
+    active = db.Column(db.Boolean, default=True)
 
     # 🔗 Relationships
     payments = db.relationship("Payment", backref="user", lazy="dynamic")
