@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Create Invite Code</h2>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div>{{ form.role.label }} {{ form.role() }}</div>
+    <div>{{ form.expires_in_days.label }} {{ form.expires_in_days() }}</div>
+    <div>{{ form.submit() }}</div>
+  </form>
+{% endblock %}
