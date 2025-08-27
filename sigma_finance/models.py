@@ -60,12 +60,16 @@ class ArchivedPaymentPlan(db.Model):
     status = db.Column(db.String(20), default="active") 
     completed_on = db.Column(db.DateTime)
 
-# models.py
 class InviteCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(32), unique=True, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=True)
+    code = db.Column(db.String(20), unique=True, nullable=False)
+    role = db.Column(db.String(20), default="member")  # 'member', 'admin', etc.
     used = db.Column(db.Boolean, default=False)
-    used_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    role = db.Column(db.String(20), default="member")  # Optional: pre-assign role
+    used_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    used_at = db.Column(db.DateTime, nullable=True)
+
+    # Relationships
+    issuer = db.relationship("User", foreign_keys=[created_by], backref="invites_created")
+    redeemer = db.relationship("User", foreign_keys=[used_by], backref="invite_used")
