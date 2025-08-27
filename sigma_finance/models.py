@@ -1,6 +1,7 @@
 from sigma_finance.extensions import db, bcrypt
 from flask_login import UserMixin, current_user
 from datetime import datetime
+from werkzeug.security import check_password_hash
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,7 +21,7 @@ class User(db.Model, UserMixin):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
     def check_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
+        return check_password_hash (self.password_hash, password)
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
