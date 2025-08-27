@@ -30,7 +30,13 @@ class Payment(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     method = db.Column(db.String(50))
     payment_type = db.Column(db.String(20))  # 'one-time' or 'installment'
+
+    def total_paid(self):
+        return sum(p.amount for p in self.payments)
     
+    def is_complete(self):
+        return self.total_paid() >= self.total_amount
+
     notes = db.Column(db.String(255))
 
     plan_id = db.Column(db.Integer, db.ForeignKey("payment_plan.id"), nullable=True)
