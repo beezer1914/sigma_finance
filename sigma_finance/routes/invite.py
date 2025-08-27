@@ -29,4 +29,4 @@ def create_invite():
         db.session.commit()
         flash(f"Invite code created: {code}", "success")
         return redirect(url_for("invite.create_invite"))
-    return render_template("create_invite.html", form=form)
+    return render_template("treasurer/create_invite.html", form=form)
