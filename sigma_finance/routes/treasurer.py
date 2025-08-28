@@ -10,7 +10,7 @@ from sigma_finance.services.stats import (
     get_user_outstanding_balance,
 )
 from sigma_finance.utils.decorators import role_required
-from models import InviteCode
+from sigma_finance.models import InviteCode
 from datetime import datetime
 
 treasurer_bp = Blueprint('treasurer_bp', __name__, template_folder='/treasurer')
