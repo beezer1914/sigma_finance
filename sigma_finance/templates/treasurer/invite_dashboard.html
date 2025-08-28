@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Invite Dashboard</h1>
+    <button 
+      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      onclick="document.getElementById('inviteModal').classList.remove('hidden')"
+    >
+      + Generate Invite
+    </button>
+  </div>
+
+  {% if invites %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+      <thead class="bg-gray-100 text-gray-700">
+        <tr>
+          <th class="px-4 py-2 text-left text-sm font-semibold">Role</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold">Expires</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold">Created</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold">Status</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invite in invites %}
+        <tr class="border-t">
+          <td class="px-4 py-2 text-sm">{{ invite.role }}</td>
+          <td class="px-4 py-2 text-sm">{{ invite.expiration.strftime('%Y-%m-%d') }}</td>
+          <td class="px-4 py-2 text-sm">{{ invite.created_at.strftime('%Y-%m-%d') }}</td>
+          <td class="px-4 py-2 text-sm">
+            {% if invite.is_active %}
+              <span class="text-green-600 font-medium">Active</span>
+            {% else %}
+              <span class="text-red-500 font-medium">Expired</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-sm space-x-2">
+            <button class="text-blue-600 hover:underline">Resend</button>
+            <button class="text-red-600 hover:underline">Revoke</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-gray-600">No invites have been generated yet.</p>
+  {% endif %}
+</div>
+
+<!-- Modal -->
+<div id="inviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+    <button 
+      class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+      onclick="document.getElementById('inviteModal').classList.add('hidden')"
+    >
+      ✕
+    </button>
+    <h2 class="text-xl font-semibold mb-4">Generate New Invite</h2>
+    <form method="POST" action="{{ url_for('invite.create_invite') }}">
+      {{ form.hidden_tag() }}
+
+      <div class="mb-4">
+        {{ form.role.label(class="block text-sm font-medium text-gray-700") }}
+        {{ form.role(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm") }}
+      </div>
+
+      <div class="mb-4">
+        {{ form.expires_in_days.label(class="block text-sm font-medium text-gray-700") }}
+        {{ form.expires_in_days(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm") }}
+      </div>
+
+      <div class="mb-4">
+        {{ form.submit(class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700") }}
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

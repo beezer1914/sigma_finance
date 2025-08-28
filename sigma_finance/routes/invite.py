@@ -30,3 +30,6 @@ def create_invite():
         flash(f"Invite code created: {code}", "success")
         return redirect(url_for("invite.create_invite"))
     return render_template("treasurer/create_invite.html", form=form)
+
+
+
