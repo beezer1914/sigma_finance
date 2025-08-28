@@ -9,6 +9,7 @@ from sigma_finance.forms.installment_form import InstallmentPaymentForm
 from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+from sigma_finance.utils.status_updater import update_financial_status
 
 payments = Blueprint("payments", __name__)
 
@@ -57,6 +58,7 @@ def pay():
             )
             db.session.add(payment)
             db.session.commit()
+            update_financial_status(current_user.id)
             flash("Installment payment submitted!", "success")
 
             # ✅ Check if plan is now complete
@@ -77,6 +79,7 @@ def pay():
             )
             db.session.add(payment)
             db.session.commit()
+            update_financial_status(current_user.id)
             flash("One-time payment submitted!", "success")
 
             # ✅ Check if any active plan is now complete
