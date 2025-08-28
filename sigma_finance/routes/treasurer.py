@@ -10,8 +10,10 @@ from sigma_finance.services.stats import (
     get_user_outstanding_balance,
 )
 from sigma_finance.utils.decorators import role_required
+from models import InviteCode
+from datetime import datetime
 
-treasurer_bp = Blueprint('treasurer_bp', __name__, template_folder='../templates/treasurer')
+treasurer_bp = Blueprint('treasurer_bp', __name__, template_folder='/treasurer')
 
 def is_treasurer():
     return current_user.role in ['admin', 'treasurer']
@@ -135,3 +137,26 @@ def add_member():
         return redirect(url_for('treasurer_bp.manage_members'))
 
     return render_template('treasurer/add_members.html')
+
+
+@treasurer_bp.route('/invite-dashboard')
+def invite_dashboard():
+    now = datetime.utcnow()
+    invites = InviteCode.query.all()
+
+    categorized = {
+        'active': [],
+        'used': [],
+        'expired': []
+    }
+
+    for invite in invites:
+        if invite.used:
+            categorized['used'].append(invite)
+        elif invite.expires_at and invite.expires_at < now:
+            categorized['expired'].append(invite)
+        else:
+            categorized['active'].append(invite)
+
+    return render_template('treasurer/invite_dashboard.html', categorized=categorized)
+
