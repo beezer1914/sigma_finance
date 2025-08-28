@@ -11,6 +11,7 @@ from sigma_finance.services.stats import (
 )
 from sigma_finance.utils.decorators import role_required
 from sigma_finance.models import InviteCode
+from sigma_finance.forms import invite_form
 from datetime import datetime
 
 treasurer_bp = Blueprint('treasurer_bp', __name__, template_folder='/treasurer')
@@ -142,6 +143,7 @@ def add_member():
 @treasurer_bp.route('/invite-dashboard')
 def invite_dashboard():
     now = datetime.utcnow()
+    form = invite_form.InviteForm()
     invites = InviteCode.query.all()
 
     categorized = {
@@ -158,5 +160,5 @@ def invite_dashboard():
         else:
             categorized['active'].append(invite)
 
-    return render_template('treasurer/invite_dashboard.html', categorized=categorized)
+    return render_template('treasurer/invite_dashboard.html', form=form,categorized=categorized)
 
