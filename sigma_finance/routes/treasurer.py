@@ -148,6 +148,10 @@ def invite_dashboard():
     invites = InviteCode.query.order_by(InviteCode.created_at.desc()).all()
     form = invite_form.InviteForm()  # Optional: if you're still using it elsewhere
 
+    print(f"Loaded {len(invites)} invites")
+    for i in invites:
+        print(i.email, i.code, i.status)
+
     return render_template('treasurer/invite_dashboard.html', invites=invites, form=form)
 
 
