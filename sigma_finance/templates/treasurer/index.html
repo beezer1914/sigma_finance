@@ -4,34 +4,28 @@
   <h1 class="text-3xl font-bold text-gray-800 mb-6">Treasurer Dashboard</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    
+
     <!-- Dues Summary -->
-    <a href="{{ url_for('treasurer_bp.payments') }}" class="bg-white shadow rounded-lg p-6 hover:shadow-md transition flex items-start gap-4">
-      <!-- Currency Dollar Icon -->
+    <a href="{{ url_for('treasurer_bp.treasurer_payments') }}" class="bg-white shadow rounded-lg p-6 hover:shadow-md transition flex items-start gap-4">
       <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c1.104 0 2-.896 2-2s-.896-2-2-2-2 .896-2 2 .896 2 2 2zm0 4c-2.21 0-4 1.79-4 4v2h8v-2c0-2.21-1.79-4-4-4z"/>
       </svg>
       <div>
         <h2 class="text-xl font-semibold text-blue-600 mb-1">Dues & Payments</h2>
         <p class="text-gray-600">View member dues, payment plans, and transaction history.</p>
-      </div>
-      <div>
-        <h2 class="text-xl font-semibold text-blue-600 mb-1">Dues & Payments</h2>
-        <p class="text-gray-600">Collected: <span class="font-bold text-gray-800">${{ total_dues }}</span></p>
+        <p class="text-gray-600 mt-2">Collected: <span class="font-bold text-gray-800">${{ total_dues }}</span></p>
         <p class="text-gray-600">Unpaid Members:</p>
-<ul class="list-disc list-inside text-red-600 font-semibold mt-1">
-  {% for member in unpaid_members %}
-    <li>{{member.name}}</li>
-  {% endfor %}
-</ul>
-        <p class="text-gray-600">Active Plans: <span class="font-bold text-green-600">{{ active_payment_plans }}</span></p>
-
+        <ul class="list-disc list-inside text-red-600 font-semibold mt-1">
+          {% for member in unpaid_members %}
+            <li>{{ member.name }}</li>
+          {% endfor %}
+        </ul>
+        <p class="text-gray-600 mt-2">Active Plans: <span class="font-bold text-green-600">{{ active_payment_plans }}</span></p>
       </div>
     </a>
 
     <!-- Member Management -->
     <a href="{{ url_for('treasurer_bp.manage_members') }}" class="bg-white shadow rounded-lg p-6 hover:shadow-md transition flex items-start gap-4">
-      <!-- Users Icon -->
       <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m6-4a4 4 0 11-8 0 4 4 0 018 0zm6 4a4 4 0 10-3-7.465"/>
       </svg>
@@ -43,7 +37,6 @@
 
     <!-- Budget Snapshot -->
     <div class="bg-white shadow rounded-lg p-6 flex items-start gap-4">
-      <!-- Chart Bar Icon -->
       <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8v-5m4 5v-3"/>
       </svg>
@@ -56,8 +49,8 @@
     {% if current_user.role == 'treasurer' %}
     <!-- Admin Tools -->
     <div class="bg-white shadow rounded-lg p-6 flex items-start gap-4">
-      <!-- Cog Icon -->
       <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11.983 2.25c.69 0 1.25.56 1.25 1.25v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v-1.5a1.25 1.25 0 112.5 0v1.5a7.5 7.5 0 013.75 0v
-{% endif %}
-{% endblock %}
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <div>
+        <h2 class="text-xl font-semibold text-red-600 mb-1">Admin Tools</h2>
