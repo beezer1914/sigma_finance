@@ -1,84 +1,40 @@
-{% extends "base.html" %}
-{% block content %}
+<h2 class="text-xl font-semibold mb-4">📨 Invite Management</h2>
 
-<div class="max-w-6xl mx-auto px-4 py-6">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Invite Dashboard</h1>
-    <button 
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      onclick="document.getElementById('inviteModal').classList.remove('hidden')"
-    >
-      + Generate Invite
-    </button>
-  </div>
-
-  {% if invites %}
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-      <thead class="bg-gray-100 text-gray-700">
-        <tr>
-          <th class="px-4 py-2 text-left text-sm font-semibold">Role</th>
-          <th class="px-4 py-2 text-left text-sm font-semibold">Expires</th>
-          <th class="px-4 py-2 text-left text-sm font-semibold">Created</th>
-          <th class="px-4 py-2 text-left text-sm font-semibold">Status</th>
-          <th class="px-4 py-2 text-left text-sm font-semibold">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for invite in invites %}
-        <tr class="border-t">
-          <td class="px-4 py-2 text-sm">{{ invite.role }}</td>
-          <td class="px-4 py-2 text-sm">{{ invite.expiration.strftime('%Y-%m-%d') }}</td>
-          <td class="px-4 py-2 text-sm">{{ invite.created_at.strftime('%Y-%m-%d') }}</td>
-          <td class="px-4 py-2 text-sm">
-            {% if invite.is_active %}
-              <span class="text-green-600 font-medium">Active</span>
-            {% else %}
-              <span class="text-red-500 font-medium">Expired</span>
-            {% endif %}
-          </td>
-          <td class="px-4 py-2 text-sm space-x-2">
-            <button class="text-blue-600 hover:underline">Resend</button>
-            <button class="text-red-600 hover:underline">Revoke</button>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-    <p class="text-gray-600">No invites have been generated yet.</p>
-  {% endif %}
-</div>
-
-<!-- Modal -->
-<div id="inviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-    <button 
-      class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-      onclick="document.getElementById('inviteModal').classList.add('hidden')"
-    >
-      ✕
-    </button>
-    <h2 class="text-xl font-semibold mb-4">Generate New Invite</h2>
-    <form method="POST" action="{{ url_for('invite.create_invite') }}">
-      {{ form.hidden_tag() }}
-
-      <div class="mb-4">
-        {{ form.role.label(class="block text-sm font-medium text-gray-700") }}
-        {{ form.role(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm") }}
-      </div>
-
-      <div class="mb-4">
-        {{ form.expires_in_days.label(class="block text-sm font-medium text-gray-700") }}
-        {{ form.expires_in_days(class="mt-1 block w-full border-gray-300 rounded-md shadow-sm") }}
-      </div>
-
-      <div class="mb-4">
-        {{ form.submit(class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700") }}
-      </div>
-    </form>
-  </div>
-</div>
-
-{% endblock %}
+<form action="{{ url_for('treasurer_bp.manage_invites') }}" method="POST" class="overflow-x-auto">
+  <table class="table-auto w-full border-collapse text-sm">
+    <thead class="bg-gray-100 text-left">
+      <tr>
+        <th class="px-4 py-2">Email</th>
+        <th class="px-4 py-2">Role</th>
+        <th class="px-4 py-2">Expires</th>
+        <th class="px-4 py-2">Status</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invite in invites %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="px-4 py-2">{{ invite.email }}</td>
+        <td class="px-4 py-2">
+          <select name="role_{{ invite.id }}" class="border rounded px-2 py-1 w-full">
+            <option value="member" {% if invite.role == 'member' %}selected{% endif %}>Member</option>
+            <option value="treasurer" {% if invite.role == 'treasurer' %}selected{% endif %}>Treasurer</option>
+            <option value="admin" {% if invite.role == 'admin' %}selected{% endif %}>Admin</option>
+          </select>
+        </td>
+        <td class="px-4 py-2">
+          <input type="date" name="expires_{{ invite.id }}" value="{{ invite.expires.strftime('%Y-%m-%d') }}" class="border rounded px-2 py-1 w-full">
+        </td>
+        <td class="px-4 py-2 capitalize">{{ invite.status }}</td>
+        <td class="px-4 py-2 space-x-2">
+          <button name="action" value="resend_{{ invite.id }}" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Resend</button>
+          {% if invite.status == 'active' %}
+          <button name="action" value="revoke_{{ invite.id }}" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Revoke</button>
+          {% endif %}
+          <button name="action" value="update_{{ invite.id }}" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Update</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
