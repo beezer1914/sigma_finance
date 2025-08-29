@@ -75,4 +75,119 @@ def treasurer_manage_members():
 # 🔁 Reset Payments
 @treasurer_bp.route("/reset_user/<int:user_id>", methods=["POST"], endpoint='treasurer_reset_user')
 def treasurer_reset_user(user_id):
-    user = User.query.get_or_404(user
+    user = User.query.get_or_404(user_id)
+
+    for plan in user.payment_plans:
+        for payment in plan.payments:
+            db.session.delete(payment)
+        db.session.delete(plan)
+
+    archived = ArchivedPaymentPlan.query.filter_by(user_id=user.id).all()
+    for plan in archived:
+        db.session.delete(plan)
+
+    db.session.commit()
+    flash(f"Payment plans and payments reset for {user.name}", "success")
+    return redirect(url_for("treasurer_bp.treasurer_manage_members"))
+
+# ✏️ Edit Member
+@treasurer_bp.route('/members/<int:member_id>/edit', methods=['GET', 'POST'], endpoint='treasurer_edit_member')
+def treasurer_edit_member(member_id):
+    member = User.query.get_or_404(member_id)
+    if request.method == 'POST':
+        member.name = request.form['name']
+        member.email = request.form['email']
+        member.role = request.form['role']
+        member.is_active = 'is_active' in request.form
+        db.session.commit()
+        flash("Member updated successfully", "success")
+        return redirect(url_for('treasurer_bp.treasurer_manage_members'))
+    return render_template('treasurer/edit_member.html', member=member)
+
+# ❌ Deactivate Member
+@treasurer_bp.route('/members/<int:member_id>/deactivate', methods=['POST'], endpoint='treasurer_deactivate_member')
+def treasurer_deactivate_member(member_id):
+    member = User.query.get_or_404(member_id)
+    member.active = False
+    db.session.commit()
+    flash("Member deactivated", "warning")
+    return redirect(url_for('treasurer_bp.treasurer_manage_members'))
+
+# ✅ Activate Member
+@treasurer_bp.route('/members/<int:member_id>/activate', methods=['POST'], endpoint='treasurer_activate_member')
+def treasurer_activate_member(member_id):
+    member = User.query.get_or_404(member_id)
+    member.active = True
+    db.session.commit()
+    flash("Member activated", "success")
+    return redirect(url_for('treasurer_bp.treasurer_manage_members'))
+
+# ➕ Add Member
+@treasurer_bp.route('/members/add', methods=['GET', 'POST'], endpoint='treasurer_add_member')
+def treasurer_add_member():
+    if request.method == 'POST':
+        new_member = User(
+            name=request.form['name'],
+            email=request.form['email'],
+            role=request.form['role'],
+            active=True
+        )
+        new_member.set_password(request.form['password'])
+        db.session.add(new_member)
+        db.session.commit()
+        flash("New member added successfully", "success")
+        return redirect(url_for('treasurer_bp.treasurer_manage_members'))
+
+    return render_template('treasurer/add_members.html')
+
+# 📩 Invite Dashboard
+@treasurer_bp.route('/invite-dashboard', endpoint='treasurer_invite_dashboard')
+@role_required
+def treasurer_invite_dashboard():
+    invites = InviteCode.query.order_by(InviteCode.created_at.desc()).all()
+    form = invite_form.InviteForm()
+    return render_template('treasurer/invite_dashboard.html', invites=invites, form=form)
+
+# ✉️ Send Invite
+@treasurer_bp.route("/send_invite", methods=["GET"], endpoint='treasurer_send_invite')
+@role_required
+def treasurer_send_invite():
+    email = request.form.get("email")
+    role = request.form.get("role", "member")
+    code = generate_invite_code(role=role)
+    send_invite_email(email, code)
+    flash(f"Invite sent to {email}", "success")
+    return redirect(url_for("treasurer_bp.treasurer_dashboard"))
+
+# 🔧 Manage Invites
+@treasurer_bp.route("/manage_invites", methods=["POST"], endpoint='treasurer_manage_invites')
+@role_required
+def treasurer_manage_invites():
+    action = request.form.get("action")
+    if not action:
+        flash("No action specified", "warning")
+        return redirect(url_for("treasurer_bp.treasurer_invite_dashboard"))
+
+    action_type, invite_id = action.split("_")
+    invite = InviteCode.query.get(invite_id)
+
+    if not invite:
+        flash("Invite not found", "danger")
+        return redirect(url_for("treasurer_bp.treasurer_invite_dashboard"))
+
+    if action_type == "resend":
+        send_invite_email(invite.email, invite.code)
+        flash(f"Resent invite to {invite.email}", "info")
+
+    elif action_type == "revoke" and invite.status == "active":
+        db.session.delete(invite)
+        db.session.commit()
+        flash(f"Revoked invite for {invite.email}", "warning")
+
+    elif action_type == "update":
+        invite.role = request.form.get(f"role_{invite.id}")
+        invite.expires = datetime.strptime(request.form.get(f"expires_{invite.id}"), "%Y-%m-%d")
+        db.session.commit()
+        flash(f"Updated invite for {invite.email}", "success")
+
+    return redirect(url_for("treasurer_bp.treasurer_invite_dashboard"))
