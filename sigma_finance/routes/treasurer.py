@@ -10,6 +10,8 @@ from sigma_finance.services.stats import (
     get_user_outstanding_balance,
 )
 from sigma_finance.utils.decorators import role_required
+from sigma_finance.utils.generate_invite import generate_invite_code
+from sigma_finance.utils.send_invite_email import send_invite_email
 from sigma_finance.models import InviteCode
 from sigma_finance.forms import invite_form
 from datetime import datetime
@@ -161,4 +163,16 @@ def invite_dashboard():
             categorized['active'].append(invite)
 
     return render_template('treasurer/invite_dashboard.html', form=form,categorized=categorized)
+
+
+
+@treasurer_bp.route("/send_invite", methods=["POST"])
+@role_required
+def send_invite():
+    email = request.form.get("email")
+    role = request.form.get("role", "member")
+    code = generate_invite_code(role=role)
+    send_invite_email(email, code)
+    flash(f"Invite sent to {email}", "success")
+    return redirect(url_for("admin.dashboard"))
 
