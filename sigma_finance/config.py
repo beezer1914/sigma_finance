@@ -17,3 +17,10 @@ class Config:
 
     # Optional: Enable debugging features
     DEBUG = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "mail.sds1914.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 465))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() == "true"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False").lower() == "true"
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
