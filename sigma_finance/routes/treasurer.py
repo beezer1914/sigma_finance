@@ -166,7 +166,7 @@ def invite_dashboard():
 
 
 
-@treasurer_bp.route("/send_invite", methods=["POST"])
+@treasurer_bp.route("/send_invite", methods=["GET"])
 @role_required
 def send_invite():
     email = request.form.get("email")
