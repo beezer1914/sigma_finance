@@ -12,7 +12,7 @@
       <li><a href="{{ url_for('dashboard.show_dashboard') }}" class="hover:underline hover:text-gray-200 transition">Dashboard</a></li>
 
       {% if current_user.role in ['treasurer', 'admin'] %}
-        <li><a href="{{ url_for('treasurer_bp.dashboard') }}" class="hover:underline hover:text-yellow-200 transition">Treasurer Dashboard</a></li>
+        <li><a href="<a href="{{ url_for('treasurer_bp.treasurer_dashboard') }}">Dashboard</a>" class="hover:underline hover:text-yellow-200 transition">Treasurer Dashboard</a></li>
       {% endif %}
 
       <li><a href="{{ url_for('payments.pay') }}" class="hover:underline hover:text-gray-200 transition">Submit Payment</a></li>
