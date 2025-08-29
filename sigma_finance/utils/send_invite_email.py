@@ -1,6 +1,6 @@
 from flask_mail import Message
 from flask import url_for
-from sigma_finance.app import mail
+from sigma_finance.extensions import mail
 
 def send_invite_email(recipient_email, invite_code):
     link = url_for("auth.register", code=invite_code, _external=True)
