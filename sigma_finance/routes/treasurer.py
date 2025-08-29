@@ -16,7 +16,7 @@ from sigma_finance.models import InviteCode
 from sigma_finance.forms import invite_form
 from datetime import datetime
 
-treasurer_bp = Blueprint('treasurer_bp', __name__, template_folder='/treasurer')
+treasurer_bp = Blueprint('treasurer_bp', __name__, url_prefix='/treasurer', template_folder='treasurer')
 
 def is_treasurer():
     return current_user.role in ['admin', 'treasurer']
