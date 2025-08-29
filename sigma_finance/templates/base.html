@@ -7,53 +7,51 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
   <nav class="bg-blue-600 text-white p-4">
-  <ul class="flex space-x-4 justify-center">
-    {% if current_user.is_authenticated %}
-      <li><a href="{{ url_for('dashboard.show_dashboard') }}" class="hover:underline hover:text-gray-200 transition">Dashboard</a></li>
+    <ul class="flex space-x-4 justify-center">
+      {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('dashboard.show_dashboard') }}" class="hover:underline hover:text-gray-200 transition">Dashboard</a></li>
 
-      {% if current_user.role in ['treasurer', 'admin'] %}
-        <li><a href="<a href="{{ url_for('treasurer_bp.treasurer_dashboard') }}">Dashboard</a>" class="hover:underline hover:text-yellow-200 transition">Treasurer Dashboard</a></li>
+        {% if current_user.role in ['treasurer', 'admin'] %}
+          <li><a href="{{ url_for('treasurer_bp.treasurer_dashboard') }}" class="hover:underline hover:text-yellow-200 transition">Treasurer Dashboard</a></li>
+        {% endif %}
+
+        <li><a href="{{ url_for('payments.pay') }}" class="hover:underline hover:text-gray-200 transition">Submit Payment</a></li>
+        <li><a href="{{ url_for('payments.plan') }}" class="hover:underline hover:text-gray-200 transition">Enroll in Payment Plan</a></li>
+        <li><a href="{{ url_for('auth.logout') }}" class="hover:underline hover:text-gray-200 transition">Logout</a></li>
+      {% else %}
+        <li><a href="{{ url_for('auth.login') }}" class="hover:underline hover:text-gray-200 transition">Login</a></li>
+        <li><a href="{{ url_for('auth.register') }}" class="hover:underline hover:text-gray-200 transition">Register</a></li>
       {% endif %}
-
-      <li><a href="{{ url_for('payments.pay') }}" class="hover:underline hover:text-gray-200 transition">Submit Payment</a></li>
-      <li><a href="{{ url_for('payments.plan') }}" class="hover:underline hover:text-gray-200 transition">Enroll in Payment Plan</a></li>
-      <li><a href="{{ url_for('auth.logout') }}" class="hover:underline hover:text-gray-200 transition">Logout</a></li>
-    {% else %}
-      <li><a href="{{ url_for('auth.login') }}" class="hover:underline hover:text-gray-200 transition">Login</a></li>
-      <li><a href="{{ url_for('auth.register') }}" class="hover:underline hover:text-gray-200 transition">Register</a></li>
-    {% endif %}
-  </ul>
-</nav>
-
+    </ul>
+  </nav>
 
   <div class="max-w-4xl-auto px-4 py-6">
     {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="my-4 space-y-4">
-      {% for category, message in messages %}
-        <div class="flash-message p-4 rounded text-white shadow-md transition duration-300
-          {% if category == 'success' %} bg-green-500
-          {% elif category == 'error' %} bg-red-500
-          {% elif category == 'warning' %} bg-yellow-500 text-black
-          {% else %} bg-blue-500 {% endif %}">
-          {{ message }}
+      {% if messages %}
+        <div class="my-4 space-y-4">
+          {% for category, message in messages %}
+            <div class="flash-message p-4 rounded text-white shadow-md transition duration-300
+              {% if category == 'success' %} bg-green-500
+              {% elif category == 'error' %} bg-red-500
+              {% elif category == 'warning' %} bg-yellow-500 text-black
+              {% else %} bg-blue-500 {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
+      {% endif %}
+    {% endwith %}
 
     {% block content %}{% endblock %}
   </div>
 
-<script>
-  setTimeout(() => {
-    document.querySelectorAll('.flash-message').forEach(el => {
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 500);
-    });
-  }, 4000); // 4 seconds
-</script>
+  <script>
+    setTimeout(() => {
+      document.querySelectorAll('.flash-message').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 500);
+      });
+    }, 4000); // 4 seconds
+  </script>
 </body>
 </html>
