@@ -8,10 +8,13 @@ from sigma_finance.models import User
 from flask_migrate import Migrate
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
+from flask_mail import Mail
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+mail = Mail(app)
 
 db.init_app(app)
 bcrypt.init_app(app)
