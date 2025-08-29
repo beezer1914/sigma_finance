@@ -143,26 +143,12 @@ def add_member():
 
 
 @treasurer_bp.route('/invite-dashboard')
+@role_required
 def invite_dashboard():
-    now = datetime.utcnow()
-    form = invite_form.InviteForm()
-    invites = InviteCode.query.all()
+    invites = InviteCode.query.order_by(InviteCode.created_at.desc()).all()
+    form = invite_form.InviteForm()  # Optional: if you're still using it elsewhere
 
-    categorized = {
-        'active': [],
-        'used': [],
-        'expired': []
-    }
-
-    for invite in invites:
-        if invite.used:
-            categorized['used'].append(invite)
-        elif invite.expires_at and invite.expires_at < now:
-            categorized['expired'].append(invite)
-        else:
-            categorized['active'].append(invite)
-
-    return render_template('treasurer/invite_dashboard.html', form=form,categorized=categorized)
+    return render_template('treasurer/invite_dashboard.html', invites=invites, form=form)
 
 
 
@@ -176,3 +162,34 @@ def send_invite():
     flash(f"Invite sent to {email}", "success")
     return redirect(url_for("treasurer_bp.dashboard"))
 
+@treasurer_bp.route("/manage_invites", methods=["POST"])
+@role_required
+def manage_invites():
+    action = request.form.get("action")
+    if not action:
+        flash("No action specified", "warning")
+        return redirect(url_for("treasurer_bp.invite_dashboard"))
+
+    action_type, invite_id = action.split("_")
+    invite = InviteCode.query.get(invite_id)
+
+    if not invite:
+        flash("Invite not found", "danger")
+        return redirect(url_for("treasurer_bp.invite_dashboard"))
+
+    if action_type == "resend":
+        send_invite_email(invite.email, invite.code)
+        flash(f"Resent invite to {invite.email}", "info")
+
+    elif action_type == "revoke" and invite.status == "active":
+        db.session.delete(invite)
+        db.session.commit()
+        flash(f"Revoked invite for {invite.email}", "warning")
+
+    elif action_type == "update":
+        invite.role = request.form.get(f"role_{invite.id}")
+        invite.expires = datetime.strptime(request.form.get(f"expires_{invite.id}"), "%Y-%m-%d")
+        db.session.commit()
+        flash(f"Updated invite for {invite.email}", "success")
+
+    return redirect(url_for("treasurer_bp.invite_dashboard"))
