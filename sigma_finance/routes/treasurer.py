@@ -174,5 +174,5 @@ def send_invite():
     code = generate_invite_code(role=role)
     send_invite_email(email, code)
     flash(f"Invite sent to {email}", "success")
-    return redirect(url_for("admin.dashboard"))
+    return redirect(url_for("treasurer_bp.dashboard"))
 
