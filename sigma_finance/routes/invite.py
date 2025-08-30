@@ -6,6 +6,8 @@ from sigma_finance.models import InviteCode, db
 from sigma_finance.utils.decorators import role_required
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.forms import invite_form
+from flask_mail import Message
+from sigma_finance.extensions import mail
 
 invite_bp = Blueprint("invite", __name__, url_prefix="/invite")
 
@@ -27,7 +29,19 @@ def create_invite():
         )
         db.session.add(invite)
         db.session.commit()
-        flash(f"Invite code created: {code}", "success")
+
+        #Build and send the e-mail
+
+        msg = Message("Your Sigma Finance Invite Code",
+                      recipients=[form.email.data])
+        
+        #render_template can load both .txt and .html versions
+
+        msg.body = render_template("invite/email_invite.txt", code=code, expires_at=expires_at, signup_url=url_for("auth.register", _external=True))
+        msg.html = render_template("invite/email_invite.html", code=code, expires_at=expires_at, signup_url=url_for("auth.register", _external=True))
+        mail.send(msg)
+
+        flash(f"Invite code sent to: {form.email.data}", "success")
         return redirect(url_for("invite.create_invite"))
     return render_template("treasurer/create_invite.html", form=form)
 
