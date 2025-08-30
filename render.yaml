@@ -2,7 +2,12 @@ services:
   - type: web
     name: sigma-finance
     env: python
-    buildCommand: pip install -r requirements.txt
-    releaseCommand: flask db upgrade
-    startCommand: gunicorn sigma_finance.app:app
     rootDir: sigma_finance
+    envVars:
+      - key: FLASK_APP
+        value: sigma_finance.app
+    buildCommand: pip install -r requirements.txt
+    releaseCommand: |
+      echo "----> running Postgres migrations…" &&
+      flask db upgrade
+    startCommand: gunicorn sigma_finance.app:app
