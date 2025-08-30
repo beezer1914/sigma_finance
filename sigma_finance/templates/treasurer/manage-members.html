@@ -41,7 +41,7 @@
           </form>
           {% endif %}
 
-          <form action="{{ url_for('treasurer_bp.treasurer_reset_user_payments', user_id=user.id) }}" method="post" class="inline">
+          <form action="{{ url_for('treasurer_bp.treasurer_reset_user', user_id=user.id) }}" method="post" class="inline">
             <button type="submit" class="text-yellow-600 hover:underline" onclick="return confirm('Reset payments for {{ user.name }}?')">
               Reset Payments
             </button>
