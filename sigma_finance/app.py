@@ -20,6 +20,8 @@ bcrypt.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
 
+mail.init_app(app)
+
 migrate = Migrate(app, db)
 
 # Register blueprints
@@ -28,7 +30,7 @@ app.register_blueprint(auth)
 app.register_blueprint(dashboard)
 app.register_blueprint(payments)
 app.register_blueprint(treasurer_bp, url_prefix='/treasurer')
-app.register_blueprint(invite_bp)
+app.register_blueprint(invite_bp, url_prefix="/treasurer/invite")
 
 # 👇 Add this route to handle the root URL
 @app.route("/")

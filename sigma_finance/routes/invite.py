@@ -9,7 +9,7 @@ from sigma_finance.forms import invite_form
 
 invite_bp = Blueprint("invite", __name__, url_prefix="/invite")
 
-@invite_bp.route("/create", methods=["GET", "POST"])
+@invite_bp.route("/create_invite", methods=["GET", "POST"])
 @login_required
 @role_required("treasurer")
 def create_invite():
