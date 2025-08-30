@@ -3,5 +3,6 @@ services:
     name: sigma-finance
     env: python
     buildCommand: pip install -r requirements.txt
+    releaseCommand: flask db upgrade
     startCommand: gunicorn sigma_finance.app:app
     rootDir: sigma_finance
