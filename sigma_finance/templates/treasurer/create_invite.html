@@ -1,10 +1,39 @@
 {% extends "base.html" %}
+
 {% block content %}
-  <h2>Create Invite Code</h2>
-  <form method="POST">
-    {{ form.hidden_tag() }}
-    <div>{{ form.role.label }} {{ form.role() }}</div>
-    <div>{{ form.expires_in_days.label }} {{ form.expires_in_days() }}</div>
-    <div>{{ form.submit() }}</div>
-  </form>
+  <div class="max-w-md mx-auto mt-8">
+    <h2 class="text-xl font-semibold mb-4">Create Invite Code</h2>
+
+    <form method="POST" class="space-y-4">
+      {{ form.hidden_tag() }}
+
+      <div>
+        {{ form.email.label(class="block text-sm font-medium") }}
+        {{ form.email(class="border rounded px-2 py-1 w-full") }}
+        {% for error in form.email.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        {{ form.role.label(class="block text-sm font-medium") }}
+        {{ form.role(class="border rounded px-2 py-1 w-full") }}
+        {% for error in form.role.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        {{ form.expires_in_days.label(class="block text-sm font-medium") }}
+        {{ form.expires_in_days(class="border rounded px-2 py-1 w-full") }}
+        {% for error in form.expires_in_days.errors %}
+          <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        {{ form.submit(class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600") }}
+      </div>
+    </form>
+  </div>
 {% endblock %}
