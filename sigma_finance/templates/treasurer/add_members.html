@@ -1,7 +1,7 @@
 <div class="max-w-xl mx-auto px-4 py-6">
   <h2 class="text-2xl font-bold text-gray-800 mb-4">Add New Member</h2>
 
-  <form method="POST" action="{{ url_for('treasurer_bp.add_member') }}" class="space-y-4 bg-white p-6 rounded-lg shadow">
+  <form method="POST" action="{{ url_for('treasurer_bp.treasurer_add_member') }}" class="space-y-4 bg-white p-6 rounded-lg shadow">
     {{ csrf_token() }}  <!-- CSRF protection if using Flask-WTF -->
 
     <!-- Full Name -->
@@ -43,7 +43,7 @@
               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         Add Member
       </button>
-      <a href="{{ url_for('treasurer_bp.members') }}"
+      <a href="{{ url_for('treasurer_bp.treasurer_members') }}"
          class="ml-4 text-sm text-gray-600 hover:underline">Cancel</a>
     </div>
   </form>
