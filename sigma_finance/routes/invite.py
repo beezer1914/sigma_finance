@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from sigma_finance.utils.generate_invite import generate_invite_code
 from sigma_finance.models import InviteCode, db
@@ -33,6 +33,7 @@ def create_invite():
         #Build and send the e-mail
 
         msg = Message("Your Sigma Finance Invite Code",
+                      sender=current_app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[form.email.data])
         
         #render_template can load both .txt and .html versions
