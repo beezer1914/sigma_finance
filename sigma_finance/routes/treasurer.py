@@ -142,7 +142,6 @@ def treasurer_add_member():
 
 # 📩 Invite Dashboard
 @treasurer_bp.route('/invite-dashboard', endpoint='treasurer_invite_dashboard')
-@role_required
 def treasurer_invite_dashboard():
     invites = InviteCode.query.order_by(InviteCode.created_at.desc()).all()
     form = invite_form.InviteForm()
@@ -150,7 +149,6 @@ def treasurer_invite_dashboard():
 
 # ✉️ Send Invite
 @treasurer_bp.route("/send_invite", methods=["GET"], endpoint='treasurer_send_invite')
-@role_required
 def treasurer_send_invite():
     email = request.form.get("email")
     role = request.form.get("role", "member")
@@ -161,7 +159,6 @@ def treasurer_send_invite():
 
 # 🔧 Manage Invites
 @treasurer_bp.route("/manage_invites", methods=["POST"], endpoint='treasurer_manage_invites')
-@role_required
 def treasurer_manage_invites():
     action = request.form.get("action")
     if not action:
