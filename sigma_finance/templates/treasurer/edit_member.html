@@ -3,7 +3,7 @@
 <div class="max-w-xl mx-auto px-4 py-6">
   <h1 class="text-2xl font-bold mb-4">Edit Member</h1>
 
-  <form action="{{ url_for('treasurer_bp.edit_member', member_id=member.id) }}" method="post" class="space-y-6 bg-white p-6 rounded-lg shadow">
+  <form action="{{ url_for('treasurer_bp.treasurer_edit_member', member_id=member.id) }}" method="post" class="space-y-6 bg-white p-6 rounded-lg shadow">
     <div>
       <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
       <input type="text" name="name" id="name" value="{{ member.name }}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
