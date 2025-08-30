@@ -75,7 +75,7 @@ class InviteCode(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     expires_at = db.Column(db.DateTime, nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, server_default=db.func.now())
 
     # Relationships
     issuer = db.relationship("User", foreign_keys=[created_by], backref="invites_created")
