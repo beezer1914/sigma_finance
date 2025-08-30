@@ -23,15 +23,38 @@
           </select>
         </td>
         <td class="px-4 py-2">
-          <input type="date" name="expires_{{ invite.id }}" value="{{ invite.expires.strftime('%Y-%m-%d') }}" class="border rounded px-2 py-1 w-full">
+          <input
+            type="date"
+            name="expires_{{ invite.id }}"
+            value="{% if invite.expires_at %}{{ invite.expires_at.strftime('%Y-%m-%d') }}{% endif %}"
+            class="border rounded px-2 py-1 w-full"
+          >
         </td>
         <td class="px-4 py-2 capitalize">{{ invite.status }}</td>
         <td class="px-4 py-2 space-x-2">
-          <button name="action" value="resend_{{ invite.id }}" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Resend</button>
+          <button
+            name="action"
+            value="resend_{{ invite.id }}"
+            class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+          >
+            Resend
+          </button>
           {% if invite.status == 'active' %}
-          <button name="action" value="revoke_{{ invite.id }}" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Revoke</button>
+          <button
+            name="action"
+            value="revoke_{{ invite.id }}"
+            class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          >
+            Revoke
+          </button>
           {% endif %}
-          <button name="action" value="update_{{ invite.id }}" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Update</button>
+          <button
+            name="action"
+            value="update_{{ invite.id }}"
+            class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+          >
+            Update
+          </button>
         </td>
       </tr>
       {% endfor %}
