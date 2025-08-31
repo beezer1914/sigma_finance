@@ -14,6 +14,9 @@ from sigma_finance.routes.invite import invite_bp
 app = Flask(__name__)
 app.config.from_object(Config)
 
+#Debug: confirm secrets are loaded
+print("SendGrid API Key:", app.config["SENDGRID_API_KEY"])
+print("Default From Email:", app.config["DEFAULT_FROM_EMAIL"])
 
 db.init_app(app)
 bcrypt.init_app(app)
