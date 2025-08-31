@@ -8,7 +8,7 @@ from sigma_finance.models import User
 from flask_migrate import Migrate
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
-from sigma_finance.extensions import mail
+
 
 
 app = Flask(__name__)
@@ -20,7 +20,6 @@ bcrypt.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
 
-mail.init_app(app)
 
 migrate = Migrate(app, db)
 
