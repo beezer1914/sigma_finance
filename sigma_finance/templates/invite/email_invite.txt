@@ -1,6 +1,6 @@
 Hello!
 
-You’ve been invited to join Sigma Finance.
+You’ve been invited to test the new SDS Dues application.
 
 Your invite code is: {{ code }}
 It expires on: {{ expires_at.strftime('%Y-%m-%d') }}
