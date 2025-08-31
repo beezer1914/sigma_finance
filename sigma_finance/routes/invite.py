@@ -56,14 +56,6 @@ def create_invite():
     return render_template("treasurer/create_invite.html", form=form)
 
 
-sg = sendgrid.SendGridAPIClient(api_key="your_api_key_here")
-message = Mail(
-    from_email='test@example.com',
-    to_emails='recipient@example.com',
-    subject='Test Email',
-    plain_text_content='This is a test email.'
-)
-response = sg.send(message)
-print(response.status_code)
+
 
 
