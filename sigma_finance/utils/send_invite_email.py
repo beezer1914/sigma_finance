@@ -1,18 +1,19 @@
-from flask_mail import Message
-from flask import url_for
-from sigma_finance.extensions import mail
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
-def send_invite_email(recipient_email, invite_code):
-    link = url_for("auth.register", code=invite_code, _external=True)
-    msg = Message(
-        subject="Welcome to the new SDS Dues app!",
-        recipients=[recipient_email],
-        body=f"""
-     Use the link below to create your account:
-
-{link}
-
-This code expires soon, so don’t wait!
-""",
+def send_email(subject, to_email, plain_text, html_content=None, from_email=None):
+    message = Mail(
+        from_email = from_email or os.getenv("DEFAULT_FROM_EMAIL"),
+        to_emails  = to_email,
+        subject    = subject,
+        plain_text_content = plain_text,
+        html_content       = html_content or plain_text
     )
-    mail.send(msg)
+    try:
+        sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
+        response = sg.send(message)
+        return response.status_code
+    except Exception as e:
+        print(f"SendGrid error: {e}")
+        return None
