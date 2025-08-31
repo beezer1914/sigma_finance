@@ -4,13 +4,8 @@ from flask_login import login_required, current_user
 from sigma_finance.utils.generate_invite import generate_invite_code
 from sigma_finance.models import InviteCode, db
 from sigma_finance.utils.decorators import role_required
-from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.forms import invite_form
 from sigma_finance.utils.send_invite_email import send_email
-import sendgrid
-from sendgrid.helpers.mail import Mail
-import requests
-
 
 invite_bp = Blueprint("invite", __name__, url_prefix="/invite")
 
@@ -55,8 +50,3 @@ def create_invite():
         return redirect(url_for("invite.create_invite"))
 
     return render_template("treasurer/create_invite.html", form=form)
-
-
-
-
-
