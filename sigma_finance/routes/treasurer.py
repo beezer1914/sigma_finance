@@ -11,7 +11,7 @@ from sigma_finance.services.stats import (
 )
 from sigma_finance.utils.decorators import role_required
 from sigma_finance.utils.generate_invite import generate_invite_code
-from sigma_finance.utils.send_invite_email import send_invite_email
+from sigma_finance.utils.send_invite_email import send_email
 from sigma_finance.forms import invite_form
 from datetime import datetime
 
@@ -153,7 +153,7 @@ def treasurer_send_invite():
     email = request.form.get("email")
     role = request.form.get("role", "member")
     code = generate_invite_code(role=role)
-    send_invite_email(email, code)
+    send_email(email, code)
     flash(f"Invite sent to {email}", "success")
     return redirect(url_for("treasurer_bp.treasurer_dashboard"))
 
@@ -173,7 +173,7 @@ def treasurer_manage_invites():
         return redirect(url_for("treasurer_bp.treasurer_invite_dashboard"))
 
     if action_type == "resend":
-        send_invite_email(invite.email, invite.code)
+        send_email(invite.email, invite.code)
         flash(f"Resent invite to {invite.email}", "info")
 
     elif action_type == "revoke" and invite.status == "active":
