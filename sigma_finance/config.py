@@ -16,3 +16,4 @@ class Config:
 
     # 👇 Add this line
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@sds1914.com")
