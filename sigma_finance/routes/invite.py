@@ -9,6 +9,7 @@ from sigma_finance.forms import invite_form
 from sigma_finance.utils.send_invite_email import send_email
 import sendgrid
 from sendgrid.helpers.mail import Mail
+import requests
 
 
 invite_bp = Blueprint("invite", __name__, url_prefix="/invite")
