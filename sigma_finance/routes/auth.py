@@ -7,8 +7,12 @@ from sigma_finance.forms.login_form import LoginForm
 from sigma_finance.forms.register_form import RegisterForm
 from sigma_finance.extensions import db
 from sigma_finance.utils.decorators import role_required
+import logging
 
 auth = Blueprint("auth", __name__)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def validate_invite(code):
     if not code:
@@ -51,6 +55,8 @@ def logout():
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
+    logger.info("Register route accessed")
+    
     form = RegisterForm()
     code = request.args.get("code")
     invite = validate_invite(code)
@@ -72,7 +78,7 @@ def register():
             db.session.flush()  # Ensure new_user.id is available
 
             if invite:
-                print(f"Marking invite {invite.code} as used by user {new_user.id}")
+                logger.info(f"Marking invite {invite.code} as used by user {new_user.id}")
                 invite.used = True
                 invite.used_by = new_user.id
                 invite.used_at = datetime.datetime.utcnow()
@@ -83,7 +89,7 @@ def register():
 
         except Exception as e:
             db.session.rollback()
-            print("Registration failed:", e)
+            logger.error("Commit failed", exc_info=True)
             flash("An error occurred during registration. Please try again.", "danger")
 
     return render_template("register.html", form=form)
