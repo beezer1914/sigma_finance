@@ -8,15 +8,17 @@ from sigma_finance.models import User
 from flask_migrate import Migrate
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-#Debug: confirm secrets are loaded
-print("SendGrid API Key:", app.config["SENDGRID_API_KEY"])
-print("Default From Email:", app.config["DEFAULT_FROM_EMAIL"])
 
 db.init_app(app)
 bcrypt.init_app(app)
