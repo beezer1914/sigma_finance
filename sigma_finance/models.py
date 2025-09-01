@@ -53,6 +53,9 @@ class PaymentPlan(db.Model):
     installment_amount = db.Column(db.Numeric(10, 2), nullable=False)
     status = db.Column(db.String(20), default="active") 
 
+    def total_paid(self):
+        return sum(payment.amount for payment in self.payments)
+
 class ArchivedPaymentPlan(db.Model):
     __tablename__ = "archived_payment_plan"
 
