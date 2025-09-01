@@ -56,7 +56,7 @@ def logout():
 @auth.route("/register", methods=["GET", "POST"])
 def register():
     logger.info("Register route accessed")
-    
+
     form = RegisterForm()
     code = request.args.get("code")
     invite = validate_invite(code)
@@ -82,6 +82,7 @@ def register():
                 invite.used = True
                 invite.used_by = new_user.id
                 invite.used_at = datetime.datetime.utcnow()
+                db.session.add(invite)
 
             db.session.commit()
             flash("Account created successfully!", "success")
