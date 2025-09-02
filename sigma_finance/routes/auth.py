@@ -59,9 +59,10 @@ def register():
 
     form = RegisterForm()
     code = request.args.get("code")
-    invite = validate_invite(code)
+    
 
     if form.validate_on_submit():
+        invite = InviteCode.query.filter_by(code=code, used=False).first()
         role = invite.role if invite else "member"
 
         new_user = User(
