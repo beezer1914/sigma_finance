@@ -82,7 +82,7 @@ def register():
                 invite.used = True
                 invite.used_by = new_user.id
                 invite.used_at = datetime.datetime.utcnow()
-                db.session.add(invite)
+                db.session.merge(invite)
 
             db.session.commit()
             flash("Account created successfully!", "success")
