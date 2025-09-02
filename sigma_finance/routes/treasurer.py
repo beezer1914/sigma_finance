@@ -98,7 +98,7 @@ def treasurer_edit_member(member_id):
         member.name = request.form['name']
         member.email = request.form['email']
         member.role = request.form['role']
-        member.is_active = 'is_active' in request.form
+        member.active = 'is_active' in request.form
         db.session.commit()
         flash("Member updated successfully", "success")
         return redirect(url_for('treasurer_bp.treasurer_manage_members'))
