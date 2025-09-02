@@ -56,21 +56,22 @@ def logout():
 @auth.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
-    code = request.args.get("code") if request.method == "GET" else form.code.data
-
-    invite = validate_invite(code)
-    if not invite and request.method == "POST":
-        return redirect(url_for("auth.register", code=code))
 
     if form.validate_on_submit():
+        code = form.invite_code.data.strip()
+        invite = InviteCode.query.filter_by(code=code).first()
+
+        role = invite.role if invite else "member"
+
         new_user = User(
             name=form.name.data,
             email=form.email.data,
-            role=invite.role if invite else "member",
+            role=role,
             password_hash=generate_password_hash(form.password.data),
             financial_status="not financial",
             active=True
         )
+
         try:
             db.session.add(new_user)
             db.session.flush()
