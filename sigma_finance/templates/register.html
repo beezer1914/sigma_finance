@@ -39,7 +39,7 @@
 
     <div class="mb-3">
       {{ form.invite_code.label(class="form-label") }}
-      {{ form.invite_code(class="form-control") }}
+      {{ form.invite_code(class="form-control", value=request.args.get('code', '')) }}
       {% for error in form.invite_code.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}
