@@ -55,35 +55,30 @@ def logout():
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
-    logger.info("Register route accessed")
-
     form = RegisterForm()
-    code = request.args.get("code")
-    
+    code = request.args.get("code") if request.method == "GET" else form.code.data
+
+    invite = validate_invite(code)
+    if not invite and request.method == "POST":
+        return redirect(url_for("auth.register", code=code))
 
     if form.validate_on_submit():
-        invite = InviteCode.query.filter_by(code=code, used=False).first()
-        role = invite.role if invite else "member"
-
         new_user = User(
             name=form.name.data,
             email=form.email.data,
-            role=role,
+            role=invite.role if invite else "member",
             password_hash=generate_password_hash(form.password.data),
             financial_status="not financial",
             active=True
         )
-
         try:
             db.session.add(new_user)
-            db.session.flush()  # Ensure new_user.id is available
+            db.session.flush()
 
             if invite:
-                logger.info(f"Marking invite {invite.code} as used by user {new_user.id}")
                 invite.used = True
                 invite.used_by = new_user.id
                 invite.used_at = datetime.datetime.utcnow()
-                #db.session.merge(invite)
 
             db.session.commit()
             flash("Account created successfully!", "success")
