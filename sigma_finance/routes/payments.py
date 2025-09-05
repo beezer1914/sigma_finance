@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
+import os
 
 
 payments = Blueprint("payments", __name__)
@@ -138,7 +139,7 @@ def plan():
 
     return render_template("plan.html", form=form)
 
-stripe.api_key = ["STRIPE_SECRET_KEY"]  # Replace with your actual secret key
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")  # Replace with your actual secret key
 
 @payments.route("/create-one-time-session", methods=["POST"])
 @login_required
