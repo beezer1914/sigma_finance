@@ -47,11 +47,19 @@ def treasurer_dashboard():
         active_plan_users=active_plan_users
     )
 
-# 💳 Payment Stats
 @treasurer_bp.route('/payments', endpoint='treasurer_payments')
+@login_required
 def treasurer_payments():
+    payments = (
+        Payment.query
+        .order_by(Payment.date.desc())
+        .limit(100)
+        .all()
+    )
+
     return render_template(
         'treasurer/payments.html',
+        payments=payments,  # 👈 This is the missing piece
         payment_type_summary=get_payment_summary_by_type(),
         payment_method_stats=get_payment_method_stats()
     )

@@ -1,4 +1,5 @@
 import datetime
+import logging
 from flask import Blueprint, render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash
@@ -7,7 +8,6 @@ from sigma_finance.forms.login_form import LoginForm
 from sigma_finance.forms.register_form import RegisterForm
 from sigma_finance.extensions import db
 from sigma_finance.utils.decorators import role_required
-import logging
 
 auth = Blueprint("auth", __name__)
 
@@ -31,10 +31,20 @@ def validate_invite(code):
 
     return invite
 
+def get_dashboard_route(user):
+    # Maps user roles to their respective dashboard endpoints
+    return {
+        "treasurer": "treasurer_bp.treasurer_dashboard",  # Defined in treasurer.py
+        "member": "dashboard.show_dashboard"
+    }.get(user.role, "index")
+
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("dashboard.show_dashboard"))
+        print("Already authenticated as:", current_user.email)
+        print("Role:", current_user.role)
+        print("Redirecting to:", get_dashboard_route(current_user))
+        return redirect(url_for(get_dashboard_route(current_user)))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -42,8 +52,13 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=True)
             flash("Logged in successfully!", "success")
-            return redirect(url_for("dashboard.show_dashboard"))
+            print("Logged in as:", user.email)
+            print("Role:", user.role)
+            print("Redirecting to:", get_dashboard_route(user))
+            return redirect(url_for(get_dashboard_route(user)))
         flash("Invalid credentials", "danger")
+    else:
+        print("Form errors:", form.errors)
 
     return render_template("login.html", form=form)
 

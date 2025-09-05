@@ -83,3 +83,13 @@ class InviteCode(db.Model):
     # Relationships
     issuer = db.relationship("User", foreign_keys=[created_by], backref="invites_created")
     redeemer = db.relationship("User", foreign_keys=[used_by], backref="invite_used")
+
+
+class WebhookEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(64), nullable=False)
+    payload = db.Column(db.Text, nullable=False)
+    received_at = db.Column(db.DateTime, default=datetime.utcnow)
+    processed = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.String(255))  # Optional: error messages or context
+  

@@ -54,11 +54,18 @@ def get_user_outstanding_balance(user_id):
 
 # 📋 Summary of payments by type
 def get_payment_summary_by_type():
-    return (
-        db.session.query(Payment.payment_type, func.sum(Payment.amount))
-        .group_by(Payment.payment_type)
-        .all()
-    )
+   summary = {
+       "one_time": db.session.query(func.count(Payment.id)).filter_by(payment_type="one-time").scalar() or 0,
+       "plan": db.session.query(func.count(Payment.id)).filter_by(payment_type="plan").scalar() or 0
+   }
+   return summary
+   
+   
+    #return (
+       # db.session.query(Payment.payment_type, func.sum(Payment.amount))
+       # .group_by(Payment.payment_type)
+       # .all()
+   # )
 
 # 🧮 Count of unpaid members (no payments at all)
 DUES_AMOUNT = 200  # Replace with your actual dues amount
@@ -81,8 +88,18 @@ def get_unpaid_members():
 
 # 📊 Payment method breakdown
 def get_payment_method_stats():
-    return (
-        db.session.query(Payment.method, func.count(Payment.id), func.sum(Payment.amount))
-        .group_by(Payment.method)
-        .all()
-    )
+   
+   stats = {
+        "stripe": db.session.query(func.count(Payment.id)).filter_by(method="stripe").scalar() or 0,
+        "manual": db.session.query(func.count(Payment.id)).filter_by(method="manual").scalar() or 0
+   }
+
+   return stats
+   
+   
+   
+    #return (
+     #   db.session.query(Payment.method, func.count(Payment.id), func.sum(Payment.amount))
+      #  .group_by(Payment.method)
+     #   .all()
+   # )
