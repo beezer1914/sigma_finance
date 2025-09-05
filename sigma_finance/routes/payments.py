@@ -11,9 +11,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
-from sigma_finance.config import STRIPE_SECRET_KEY
 
-stripe.api_key = STRIPE_SECRET_KEY
 
 payments = Blueprint("payments", __name__)
 
