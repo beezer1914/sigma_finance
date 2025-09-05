@@ -13,7 +13,7 @@ webhook_bp = Blueprint("webhook", __name__)
 def stripe_webhook():
     print("✅ Webhook received")
 
-    payload = request.data
+    payload = request.get_data(as_text=False)
     sig_header = request.headers.get("Stripe-Signature")
 
     try:
