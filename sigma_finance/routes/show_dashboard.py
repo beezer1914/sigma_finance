@@ -8,23 +8,31 @@ dashboard = Blueprint("dashboard", __name__)
 @dashboard.route("/dashboard")
 @login_required
 def show_dashboard():
-    payments = Payment.query.filter_by(user_id=current_user.id).order_by(Payment.date.desc()).all()
+    # Fetch all payments for the current user
+    payments = (
+        Payment.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Payment.date.desc())
+        .all()
+    )
+
+    # Fetch active payment plan, if any
     plan = PaymentPlan.query.filter_by(user_id=current_user.id, status="Active").first()
 
-
-
+    # Initialize progress metrics
     remaining_balance = None
     percent_paid = None
 
     if plan:
-        # Sum of installment payments
+        # Sum all payments linked to this plan
         paid = (
             Payment.query
             .with_entities(func.sum(Payment.amount))
-            .filter_by(user_id=current_user.id, plan_id=plan.id, payment_type="installment")
+            .filter_by(plan_id=plan.id)
             .scalar()
         ) or 0
 
+        # Calculate remaining balance and progress percentage
         remaining_balance = round(plan.total_amount - paid, 2)
         percent_paid = round((paid / plan.total_amount) * 100, 0)
 

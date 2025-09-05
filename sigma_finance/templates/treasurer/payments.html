@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Payments Overview</h1>
+
+  <!-- Optional Summary Stats -->
+  {% if payment_type_summary or payment_method_stats %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white shadow rounded-lg p-4">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">By Payment Type</h2>
+      <ul class="text-gray-600">
+        <li>One-Time: <strong>{{ payment_type_summary.one_time or 0 }}</strong></li>
+        <li>Plan-Based: <strong>{{ payment_type_summary.plan or 0 }}</strong></li>
+      </ul>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">By Method</h2>
+      <ul class="text-gray-600">
+        <li>Stripe: <strong>{{ payment_method_stats.stripe or 0 }}</strong></li>
+        <li>Manual: <strong>{{ payment_method_stats.manual or 0 }}</strong></li>
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Payment Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">User</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Amount</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Type</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Method</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Stripe</th>
+          <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Notes</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for p in payments %}
+        <tr>
+          <td class="px-4 py-2 text-sm text-gray-900">
+            {{ p.user.email if p.user else "—" }}
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-900">
+            ${{ "%.2f"|format(p.amount or 0) }}
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-900">
+            {{ p.payment_type or "—" }}
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-900">
+            {{ p.method or "—" }}
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-900">
+            {{ p.date.strftime('%Y-%m-%d %H:%M') if p.date else "—" }}
+          </td>
+          <td class="px-4 py-2 text-sm">
+            {% if p.stripe_session_id %}
+            <a href="https://dashboard.stripe.com/test/payments/{{ p.stripe_session_id }}" target="_blank" class="text-blue-600 hover:underline">
+              🔗 View
+            </a>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-700">
+            {{ p.notes or "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if payments|length == 0 %}
+        <tr>
+          <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500">
+            No payments found.
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -10,6 +10,7 @@ from datetime import timedelta, date, datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
+import stripe
 
 payments = Blueprint("payments", __name__)
 
@@ -45,51 +46,51 @@ def archive_plan_if_completed(plan):
 @login_required
 def pay():
     plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
+    form = OneTimePaymentForm()  # Updated form class
 
-    if plan:
-        form = InstallmentPaymentForm()
-        if form.validate_on_submit():
-            payment = Payment(
-                user_id=current_user.id,
-                amount=form.amount.data,
-                payment_type="installment",
-                method=form.method.data,
-                plan_id=plan.id
+    if form.validate_on_submit():
+        if form.method.data == "card" and form.type.data == "one-time":
+            session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=[{
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {"name": "One-Time Dues"},
+                        "unit_amount": int(form.amount.data * 100),
+                    },
+                    "quantity": 1,
+                }],
+                mode="payment",
+                success_url=url_for("payments.success", _external=True),
+                cancel_url=url_for("payments.cancel", _external=True),
+                metadata={
+                    "user_id": current_user.id,
+                    "payment_type": "one_time",
+                    "notes": form.notes.data or ""
+                }
             )
-            db.session.add(payment)
-            db.session.commit()
-            update_financial_status(current_user.id)
-            flash("Installment payment submitted!", "success")
+            return redirect(session.url, code=303)
 
-            # ✅ Check if plan is now complete
+        # Manual payment logic
+        payment = Payment(
+            user_id=current_user.id,
+            amount=form.amount.data,
+            payment_type=form.type.data,
+            method=form.method.data,
+            notes=form.notes.data,
+            plan_id=plan.id if plan else None
+        )
+        db.session.add(payment)
+        db.session.commit()
+        update_financial_status(current_user.id)
+        flash("Manual payment submitted!", "success")
+
+        if plan:
             archive_plan_if_completed(plan)
 
-            return redirect(url_for("dashboard.show_dashboard"))
+        return redirect(url_for("dashboard.show_dashboard"))
 
-        return render_template("submit_installment.html", form=form, plan=plan)
-
-    else:
-        form = OneTimePaymentForm()
-        if form.validate_on_submit():
-            payment = Payment(
-                user_id=current_user.id,
-                amount=form.amount.data,
-                payment_type="one_time",
-                method=form.method.data
-            )
-            db.session.add(payment)
-            db.session.commit()
-            update_financial_status(current_user.id)
-            flash("One-time payment submitted!", "success")
-
-            # ✅ Check if any active plan is now complete
-            plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
-            if plan:
-                archive_plan_if_completed(plan)
-
-            return redirect(url_for("dashboard.show_dashboard"))
-
-        return render_template("one_time.html", form=form)
+    return render_template("one_time.html", form=form)
 
 @payments.route("/pay/plan", methods=["GET", "POST"])
 @login_required
@@ -125,7 +126,8 @@ def plan():
             end_date=end_date,
             total_amount=total_amount,
             installment_amount=installment_amount,
-            status="Active"
+            status="Active",
+            plan_id=plan.id if plan else None
         )
 
         db.session.add(plan)
@@ -134,3 +136,63 @@ def plan():
         return redirect(url_for("dashboard.show_dashboard"))
 
     return render_template("plan.html", form=form)
+
+stripe.api_key = "sk_test_51S34mDQiIJDONjBy5QKoGxlElpggxvS5J1Fz9Rqo8eSQ54EnpZqBWzc5YbjSJQ4iMisn6DFwUQTgW03BW96ZiO4S00qbLkMImw"  # Replace with your actual secret key
+
+@payments.route("/create-one-time-session", methods=["POST"])
+@login_required
+def create_one_time_session():
+    # Create a new Stripe Checkout session for one-time payment
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": "One-Time Payment",
+                    },
+                    "unit_amount": 5000,  # Amount in cents ($50.00
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=url_for("payments.success", _external=True),
+        cancel_url=url_for("payments.cancel", _external=True),
+    )
+    return {"id": session.id}
+
+@payments.route("/payment/success")
+@login_required
+def success():
+    flash("Payment successful!", "success")
+    return redirect(url_for("dashboard.show_dashboard"))
+
+@payments.route("/payment/cancel")
+@login_required
+def cancel():
+    flash("Payment was canceled or not completed.", "warning")
+    return redirect(url_for("dashboard.show_dashboard"))
+
+
+@payments.route("/")
+@login_required
+def dashboard():
+    if current_user.role == "treasurer":
+        payments = (
+            Payment.query
+            .order_by(Payment.date.desc())
+            .limit(100)
+            .all()
+        )
+    else:
+        payments = (
+            Payment.query
+            .filter_by(user_id=current_user.id)
+            .order_by(Payment.date.desc())
+            .limit(100)
+            .all()
+        )
+    print(f"Found {len(payments)} payments")
+    return render_template("treasurer/payments.html", payments=payments)

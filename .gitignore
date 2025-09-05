@@ -17,3 +17,9 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+migrations/versions/b4bfad26f602_made_updates_to_the_invite_database_.py
+migrations/versions/b4bfad26f602_made_updates_to_the_invite_database_.py
+migrations/versions/764d7ead9ca1_add_active_field_to_user.py
+migrations/versions/7775ad9a6959_adds_plan_id_relationship_to_payment.py
+migrations/versions/7775ad9a6959_adds_plan_id_relationship_to_payment.py
+migrations/versions/b4bfad26f602_made_updates_to_the_invite_database_.py
