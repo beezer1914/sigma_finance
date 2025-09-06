@@ -5,8 +5,9 @@ from decimal import Decimal
 import stripe
 
 from sigma_finance.extensions import db
-from sigma_finance.models import Payment, User, WebhookEvent
+from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan
 from sigma_finance.utils.status_updater import update_financial_status
+from sigma_finance.routes.payments import archive_plan_if_completed
 
 webhook_bp = Blueprint("webhook", __name__)
 
@@ -46,12 +47,16 @@ def stripe_webhook():
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
         metadata = session.get("metadata", {})
-        email = session["customer_details"]["email"]
+        email = session.get("customer_details", {}).get("email")
         plan_id = metadata.get("plan_id")
 
         print(f"📧 Email: {email}")
         print(f"🧾 Metadata: {metadata}")
         print(f"📌 Plan ID: {plan_id}")
+
+        if not email:
+            print("❌ Missing customer email in session")
+            return "", 400
 
         user = User.query.filter_by(email=email).first()
         if not user:
@@ -72,6 +77,12 @@ def stripe_webhook():
             print("✅ Payment logged to DB")
 
             update_financial_status(user.id)
+
+            if new_payment.plan_id:
+                print(f"🔄 Checking if plan {new_payment.plan_id} should be archived")
+                plan = PaymentPlan.query.get(new_payment.plan_id)
+                if plan:
+                    archive_plan_if_completed(plan)
 
         except Exception as e:
             print(f"❌ DB insert error: {e}")
