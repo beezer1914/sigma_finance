@@ -1,4 +1,3 @@
-# webhooks.py
 from flask import Blueprint, request, current_app
 from datetime import datetime
 from decimal import Decimal
@@ -82,7 +81,8 @@ def stripe_webhook():
                 print(f"🔄 Checking if plan {new_payment.plan_id} should be archived")
                 plan = PaymentPlan.query.get(new_payment.plan_id)
                 if plan:
-                    archive_plan_if_completed(plan, user.id)
+                    archive_plan_if_completed(plan, user.id, silent=True)
+                    print(f"📁 Plan {plan.id} archived for user {user.email}")
 
         except Exception as e:
             print(f"❌ DB insert error: {e}")

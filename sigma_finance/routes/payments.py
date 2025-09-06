@@ -15,12 +15,16 @@ import stripe
 payments = Blueprint("payments", __name__)
 
 # 🔁 Archive completed plans
-def archive_plan_if_completed(plan, user_id):
+def archive_plan_if_completed(plan, user_id, silent=False):
+    db.session.expire_all()  # 🔄 Ensure fresh query context
+
     paid = (
         db.session.query(func.sum(Payment.amount))
         .filter_by(user_id=user_id, plan_id=plan.id)
         .scalar()
     ) or 0
+
+    print(f"💰 Paid: {paid}, Target: {plan.total_amount}")
 
     if paid >= plan.total_amount - Decimal("0.01") and plan.status != "Completed":
         plan.status = "Completed"
@@ -39,8 +43,10 @@ def archive_plan_if_completed(plan, user_id):
         db.session.add(archived)
         db.session.delete(plan)
         db.session.commit()
-        flash("You've completed your payment plan! It's now archived.", "info")
-        
+
+        if not silent:
+            flash("🎉 You've completed your payment plan! It's now archived.", "info")
+
 @payments.route("/pay", methods=["GET", "POST"])
 @login_required
 def pay():
