@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sigma_finance.extensions import db
@@ -6,17 +6,15 @@ from sigma_finance.models import Payment, PaymentPlan, ArchivedPaymentPlan
 from sigma_finance.forms.one_time_form import PaymentForm as OneTimePaymentForm
 from sigma_finance.forms.plan_form import PaymentPlanForm
 from sigma_finance.forms.installment_form import InstallmentPaymentForm
-from datetime import timedelta, date, datetime
+from datetime import timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
-import os
-
 
 payments = Blueprint("payments", __name__)
 
-# 🔁 Helper function to archive completed plans
+# 🔁 Archive completed plans
 def archive_plan_if_completed(plan):
     paid = (
         db.session.query(func.sum(Payment.amount))
@@ -25,7 +23,6 @@ def archive_plan_if_completed(plan):
     ) or 0
 
     if paid >= plan.total_amount - Decimal("0.01") and plan.status != "Completed":
-        # ✅ Update status before archiving
         plan.status = "Completed"
         db.session.commit()
 
@@ -36,7 +33,7 @@ def archive_plan_if_completed(plan):
             end_date=plan.end_date,
             total_amount=plan.total_amount,
             installment_amount=plan.installment_amount,
-            status="Completed",  # ✅ Explicitly set archived status
+            status="Completed",
             completed_on=datetime.utcnow()
         )
         db.session.add(archived)
@@ -47,8 +44,9 @@ def archive_plan_if_completed(plan):
 @payments.route("/pay", methods=["GET", "POST"])
 @login_required
 def pay():
+    stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
     plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
-    form = OneTimePaymentForm()  # Updated form class
+    form = OneTimePaymentForm()
 
     if form.validate_on_submit():
         if form.method.data == "card" and form.type.data == "one-time":
@@ -73,7 +71,6 @@ def pay():
             )
             return redirect(session.url, code=303)
 
-        # Manual payment logic
         payment = Payment(
             user_id=current_user.id,
             amount=form.amount.data,
@@ -104,7 +101,6 @@ def plan():
         start_date = form.start_date.data
         total_amount = form.amount.data
 
-        # Define number of payments and interval
         if frequency == "weekly":
             num_payments = 10
             interval = timedelta(weeks=1)
@@ -139,26 +135,21 @@ def plan():
 
     return render_template("plan.html", form=form)
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")  # Replace with your actual secret key
-
 @payments.route("/create-one-time-session", methods=["POST"])
 @login_required
 def create_one_time_session():
-    # Create a new Stripe Checkout session for one-time payment
+    stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
+
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {
-                        "name": "One-Time Payment",
-                    },
-                    "unit_amount": 5000,  # Amount in cents ($50.00
-                },
-                "quantity": 1,
-            }
-        ],
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "product_data": {"name": "One-Time Payment"},
+                "unit_amount": 5000,
+            },
+            "quantity": 1,
+        }],
         mode="payment",
         success_url=url_for("payments.success", _external=True),
         cancel_url=url_for("payments.cancel", _external=True),
@@ -177,17 +168,11 @@ def cancel():
     flash("Payment was canceled or not completed.", "warning")
     return redirect(url_for("dashboard.show_dashboard"))
 
-
 @payments.route("/")
 @login_required
 def dashboard():
     if current_user.role == "treasurer":
-        payments = (
-            Payment.query
-            .order_by(Payment.date.desc())
-            .limit(100)
-            .all()
-        )
+        payments = Payment.query.order_by(Payment.date.desc()).limit(100).all()
     else:
         payments = (
             Payment.query
