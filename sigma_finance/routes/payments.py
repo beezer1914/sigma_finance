@@ -124,8 +124,7 @@ def plan():
             end_date=end_date,
             total_amount=total_amount,
             installment_amount=installment_amount,
-            status="Active",
-            plan_id=plan.id if plan else None
+            status="Active"
         )
 
         db.session.add(plan)
