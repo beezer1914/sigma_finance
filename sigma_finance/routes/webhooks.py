@@ -82,7 +82,6 @@ def stripe_webhook():
                 plan = PaymentPlan.query.get(new_payment.plan_id)
                 if plan:
                     archive_plan_if_completed(plan, user.id, silent=True)
-                    print(f"📁 Plan {plan.id} archived for user {user.email}")
 
         except Exception as e:
             print(f"❌ DB insert error: {e}")
