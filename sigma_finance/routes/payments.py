@@ -66,7 +66,8 @@ def pay():
                 metadata={
                     "user_id": current_user.id,
                     "payment_type": "one_time",
-                    "notes": form.notes.data or ""
+                    "notes": form.notes.data or "",
+                    "plan_id": str(plan.id) if plan else None
                 }
             )
             return redirect(session.url, code=303)

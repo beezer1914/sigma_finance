@@ -6,6 +6,7 @@ import stripe
 
 from sigma_finance.extensions import db
 from sigma_finance.models import Payment, User, WebhookEvent
+from sigma_finance.utils.status_updater import update_financial_status
 
 webhook_bp = Blueprint("webhook", __name__)
 
@@ -28,7 +29,7 @@ def stripe_webhook():
 
     print(f"📦 Event type: {event['type']}")
 
-    # Optional: log every event for audit trail
+    # Audit log for all events
     try:
         audit = WebhookEvent(
             event_type=event["type"],
@@ -41,12 +42,18 @@ def stripe_webhook():
     except Exception as e:
         print(f"⚠️ Audit log error: {e}")
 
+    # Handle completed checkout session
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        print(f"💳 Payment for {session['amount_total']} from {session['customer_details']['email']}")
+        metadata = session.get("metadata", {})
+        email = session["customer_details"]["email"]
+        plan_id = metadata.get("plan_id")
 
-        # Lookup user by email (assuming email is unique or indexed)
-        user = User.query.filter_by(email=session["customer_details"]["email"]).first()
+        print(f"📧 Email: {email}")
+        print(f"🧾 Metadata: {metadata}")
+        print(f"📌 Plan ID: {plan_id}")
+
+        user = User.query.filter_by(email=email).first()
         if not user:
             print("❌ No matching user found for email")
             return "", 400
@@ -54,14 +61,18 @@ def stripe_webhook():
         try:
             new_payment = Payment(
                 user_id=user.id,
-                amount=Decimal(session["amount_total"]) / 100,  # Stripe sends amount in cents
+                amount=Decimal(session["amount_total"]) / 100,
                 method="stripe",
-                payment_type="one-time",
-                notes=f"Stripe session ID: {session['id']}"
+                payment_type=metadata.get("payment_type", "one_time"),
+                notes=metadata.get("notes", ""),
+                plan_id=int(plan_id) if plan_id else None
             )
             db.session.add(new_payment)
             db.session.commit()
             print("✅ Payment logged to DB")
+
+            update_financial_status(user.id)
+
         except Exception as e:
             print(f"❌ DB insert error: {e}")
 
