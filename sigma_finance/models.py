@@ -52,6 +52,7 @@ class PaymentPlan(db.Model):
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     installment_amount = db.Column(db.Numeric(10, 2), nullable=False)
     status = db.Column(db.String(20), default="active") 
+    expected_installments = db.Column(db.Integer, nullable=True)
 
     def total_paid(self):
         return sum(payment.amount for payment in self.payments)
