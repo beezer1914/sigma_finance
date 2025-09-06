@@ -117,7 +117,7 @@ def pay():
 
         return redirect(url_for("dashboard.show_dashboard"))
 
-    return render_template(template, form=form)
+    return render_template(template, form=form, plan=plan)
 
 
 @payments.route("/pay/plan", methods=["GET", "POST"])
