@@ -60,7 +60,7 @@
     {% if payments %}
       <ul class="list-disc list-inside text-gray-700">
         {% for payment in payments %}
-          <li>${{ payment.amount }} on {{ payment.date.strftime('%Y-%m-%d') }} via {{ payment.method }} ({{ payment.type }})</li>
+          <li>${{ payment.amount }} on {{ payment.date.strftime('%Y-%m-%d') }} via {{ payment.method }} ({{ payment.payment_type }})</li>
         {% endfor %}
       </ul>
     {% else %}
