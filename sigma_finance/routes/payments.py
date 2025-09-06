@@ -49,13 +49,15 @@ def pay():
     form = OneTimePaymentForm()
 
     if form.validate_on_submit():
-        if form.method.data == "card" and form.type.data == "one-time":
+        if form.method.data == "card":
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=[{
                     "price_data": {
                         "currency": "usd",
-                        "product_data": {"name": "One-Time Dues"},
+                        "product_data": {
+                            "name": "Installment Payment" if form.type.data == "installment" else "One-Time Dues"
+                        },
                         "unit_amount": int(form.amount.data * 100),
                     },
                     "quantity": 1,
@@ -65,13 +67,14 @@ def pay():
                 cancel_url=url_for("payments.cancel", _external=True),
                 metadata={
                     "user_id": current_user.id,
-                    "payment_type": "one_time",
+                    "payment_type": form.type.data,
                     "notes": form.notes.data or "",
-                    "plan_id": str(plan.id) if plan else None
+                    "plan_id": str(plan.id) if plan else ""
                 }
             )
             return redirect(session.url, code=303)
 
+        # Manual payment logic
         payment = Payment(
             user_id=current_user.id,
             amount=form.amount.data,
@@ -91,6 +94,7 @@ def pay():
         return redirect(url_for("dashboard.show_dashboard"))
 
     return render_template("one_time.html", form=form)
+
 
 @payments.route("/pay/plan", methods=["GET", "POST"])
 @login_required
