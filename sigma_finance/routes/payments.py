@@ -22,30 +22,38 @@ def archive_plan_if_completed(plan, user_id, silent=False):
         db.session.query(func.sum(Payment.amount))
         .filter_by(user_id=user_id, plan_id=plan.id)
         .scalar()
-    ) or 0
+    ) or Decimal("0.00")
 
-    print(f"💰 Paid: {paid}, Target: {plan.total_amount}")
+    print(f"🧮 Comparing paid ({paid}) to target ({plan.total_amount})")
 
     if paid >= plan.total_amount - Decimal("0.01") and plan.status != "Completed":
-        plan.status = "Completed"
-        db.session.commit()
+        try:
+            plan.status = "Completed"
+            db.session.commit()
 
-        archived = ArchivedPaymentPlan(
-            user_id=plan.user_id,
-            frequency=plan.frequency,
-            start_date=plan.start_date,
-            end_date=plan.end_date,
-            total_amount=plan.total_amount,
-            installment_amount=plan.installment_amount,
-            status="Completed",
-            completed_on=datetime.utcnow()
-        )
-        db.session.add(archived)
-        db.session.delete(plan)
-        db.session.commit()
+            archived = ArchivedPaymentPlan(
+                user_id=plan.user_id,
+                frequency=plan.frequency,
+                start_date=plan.start_date,
+                end_date=plan.end_date,
+                total_amount=plan.total_amount,
+                installment_amount=plan.installment_amount,
+                status="Completed",
+                completed_on=datetime.utcnow()
+            )
+            db.session.add(archived)
+            db.session.delete(plan)
+            db.session.commit()
 
-        if not silent:
-            flash("🎉 You've completed your payment plan! It's now archived.", "info")
+            print(f"📁 Plan {plan.id} archived for user_id {user_id}")
+
+            if not silent:
+                flash("🎉 You've completed your payment plan! It's now archived.", "info")
+
+        except Exception as e:
+            print(f"❌ Archival failed: {e}")
+    else:
+        print(f"⏳ Plan {plan.id} not archived — paid: {paid}, required: {plan.total_amount}")
 
 @payments.route("/pay", methods=["GET", "POST"])
 @login_required
