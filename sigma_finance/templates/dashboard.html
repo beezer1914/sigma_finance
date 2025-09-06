@@ -39,7 +39,7 @@
       </div>
 
       {% if plan.status == 'Active' %}
-        <a href="{{ url_for('payments.pay') }}" class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <a href="{{ url_for('payments.pay', type='installment') }}" class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
           Make Installment Payment
         </a>
       {% else %}
