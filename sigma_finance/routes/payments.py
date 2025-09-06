@@ -62,7 +62,7 @@ def pay():
     stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
     plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
 
-    # Determine payment type from query param or default
+    # Determine payment type from query param or fallback
     payment_type = request.args.get("type", "one-time")
 
     if payment_type == "installment":
@@ -73,6 +73,10 @@ def pay():
         template = "one_time.html"
 
     if form.validate_on_submit():
+        # Use form.type.data if available, fallback to payment_type
+        payment_kind = getattr(form, "type", None)
+        payment_type_value = payment_kind.data if payment_kind else payment_type
+
         if form.method.data == "card":
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
@@ -80,7 +84,7 @@ def pay():
                     "price_data": {
                         "currency": "usd",
                         "product_data": {
-                            "name": "Installment Payment" if form.type.data == "installment" else "One-Time Dues"
+                            "name": "Installment Payment" if payment_type_value == "installment" else "One-Time Dues"
                         },
                         "unit_amount": int(form.amount.data * 100),
                     },
@@ -91,7 +95,7 @@ def pay():
                 cancel_url=url_for("payments.cancel", _external=True),
                 metadata={
                     "user_id": current_user.id,
-                    "payment_type": form.type.data,
+                    "payment_type": payment_type_value,
                     "notes": form.notes.data or "",
                     "plan_id": str(plan.id) if plan else ""
                 }
@@ -102,7 +106,7 @@ def pay():
         payment = Payment(
             user_id=current_user.id,
             amount=form.amount.data,
-            payment_type=form.type.data,
+            payment_type=payment_type_value,
             method=form.method.data,
             notes=form.notes.data,
             plan_id=plan.id if plan else None
