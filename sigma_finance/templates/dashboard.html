@@ -49,7 +49,7 @@
       <p class="text-gray-700">No active payment plan.</p>
       <div class="mt-4 space-x-2">
         <a href="{{ url_for('payments.plan') }}" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">Enroll in a Plan</a>
-        <a href="{{ url_for('payments.pay') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">One-Time Payment</a>
+        <a href="{{ url_for('payments.pay', type='one-time') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">One-Time Payment</a>
       </div>
     {% endif %}
   </div>
