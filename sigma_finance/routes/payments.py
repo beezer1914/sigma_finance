@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from sigma_finance.extensions import db
@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
+
 
 payments = Blueprint("payments", __name__)
 
@@ -60,7 +61,16 @@ def archive_plan_if_completed(plan, user_id, silent=False):
 def pay():
     stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
     plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
-    form = OneTimePaymentForm()
+
+    # Determine payment type from query param or default
+    payment_type = request.args.get("type", "one-time")
+
+    if payment_type == "installment":
+        form = InstallmentPaymentForm()
+        template = "submit_installment.html"
+    else:
+        form = OneTimePaymentForm()
+        template = "one_time.html"
 
     if form.validate_on_submit():
         if form.method.data == "card":
@@ -103,11 +113,11 @@ def pay():
         flash("Manual payment submitted!", "success")
 
         if plan:
-            archive_plan_if_completed(plan)
+            archive_plan_if_completed(plan, current_user.id)
 
         return redirect(url_for("dashboard.show_dashboard"))
 
-    return render_template("one_time.html", form=form)
+    return render_template(template, form=form)
 
 
 @payments.route("/pay/plan", methods=["GET", "POST"])
