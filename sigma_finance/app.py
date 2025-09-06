@@ -15,6 +15,7 @@ from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
 from sigma_finance.routes.webhooks import webhook_bp  # 👈 new webhook route
 from sigma_finance.config import LocalConfig,ProductionConfig
+from sigma_finance.config import read_render_secret
 
 # Logging setup
 logging.basicConfig(
@@ -26,9 +27,11 @@ def create_app():
     app = Flask(__name__)
 
     # Use CONFIG_CLASS env var to toggle between LocalConfig and ProductionConfig
-    
-    config_class = os.getenv("CONFIG_CLASS", "sigma_finance.config.LocalConfig")
-    app.config.from_object(config_class)  # swap with ProductionConfig as needed
+
+    config_class = read_render_secret("CONFIG_CLASS") or "sigma_finance.config.LocalConfig"
+    app.config.from_object(config_class)
+    print(f"Using configuration: {config_class}")
+
 
     # Initialize extensions
     db.init_app(app)
