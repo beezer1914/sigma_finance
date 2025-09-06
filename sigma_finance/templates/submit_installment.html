@@ -9,6 +9,9 @@
   <div class="form-group">
   {{ form.amount.label }} {{ form.amount(size=20) }}<br>
   {{ form.method.label }} {{ form.method() }}<br>
-  <input type="submit" value="Submit Payment">
+  {{ form.notes.label(class="block text-sm font-medium text-gray-700")}}
+  {{ form.notes(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm")}}
+
+<input type="submit" value="Submit Payment">
 </form>
 {% endblock %}
