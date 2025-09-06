@@ -17,17 +17,17 @@ payments = Blueprint("payments", __name__)
 
 # 🔁 Archive completed plans
 def archive_plan_if_completed(plan, user_id, silent=False):
-    db.session.expire_all()  # 🔄 Ensure fresh query context
+    db.session.expire_all()
 
-    paid = (
-        db.session.query(func.sum(Payment.amount))
-        .filter_by(user_id=user_id, plan_id=plan.id)
-        .scalar()
-    ) or Decimal("0.00")
+    payments = Payment.query.filter_by(user_id=user_id, plan_id=plan.id).all()
+    paid = sum(p.amount for p in payments)
+    actual_installments = len(payments)
+    expected_installments = plan.expected_installments or 0
 
-    print(f"🧮 Comparing paid ({paid}) to target ({plan.total_amount})")
+    print(f"🧮 Paid: {paid}, Target: {plan.total_amount}")
+    print(f"📆 Installments: {actual_installments} / {expected_installments}")
 
-    if paid >= plan.total_amount - Decimal("0.01") and plan.status != "Completed":
+    if paid >= plan.total_amount - Decimal("0.01") and actual_installments >= expected_installments and plan.status != "Completed":
         try:
             plan.status = "Completed"
             db.session.commit()
@@ -54,7 +54,7 @@ def archive_plan_if_completed(plan, user_id, silent=False):
         except Exception as e:
             print(f"❌ Archival failed: {e}")
     else:
-        print(f"⏳ Plan {plan.id} not archived — paid: {paid}, required: {plan.total_amount}")
+        print(f"⏳ Plan {plan.id} not archived — paid: {paid}, required: {plan.total_amount}, installments: {actual_installments}/{expected_installments}")
 
 @payments.route("/pay", methods=["GET", "POST"])
 @login_required
@@ -157,6 +157,7 @@ def plan():
             end_date=end_date,
             total_amount=total_amount,
             installment_amount=installment_amount,
+            expected_installments=num_payments,
             status="Active"
         )
 
