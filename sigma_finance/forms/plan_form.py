@@ -7,7 +7,7 @@ class PaymentPlanForm(FlaskForm):
     # Enrollment fields
     frequency = SelectField(
         "Payment Frequency",
-        choices=[("monthly", "Monthly"), ("weekly", "Weekly"), ("quarterly", "Quarterly")],
+        choices=[ ("quarterly", "Quarterly")],
         validators=[Optional()]  # Optional for installment mode
     )
     start_date = DateField("Start Date", default=date.today, validators=[Optional()])
