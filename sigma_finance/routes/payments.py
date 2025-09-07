@@ -27,7 +27,10 @@ def archive_plan_if_completed(plan, user_id, silent=False):
     print(f"🧮 Paid: {paid}, Target: {plan.total_amount}")
     print(f"📆 Installments: {actual_installments} / {expected_installments}")
 
-    if paid >= plan.total_amount - Decimal("0.01") and actual_installments >= expected_installments and plan.status != "Completed":
+    meets_installment_requirement = (not plan.enforce_installments or actual_installments >= expected_installments)
+
+    if paid >= plan.total_amount - Decimal("0.01") and meets_installment_requirement and plan.status != "Completed":
+
         try:
             plan.status = "Completed"
             db.session.commit()
@@ -158,6 +161,7 @@ def plan():
             total_amount=total_amount,
             installment_amount=installment_amount,
             expected_installments=num_payments,
+            enforce_installments=False,
             status="Active"
         )
 
