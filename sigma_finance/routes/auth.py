@@ -117,7 +117,7 @@ def forgot_password():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.get_reset_token()
-            send_password_reset_email(user, token)
+            send_password_reset_email(user)
         flash("If your email is registered, you'll receive a reset link shortly.", "info")
         return redirect(url_for('auth.login'))
     return render_template('forgot_password.html', form=form)
