@@ -28,19 +28,20 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
     def get_reset_token(self, expires_in=600):
-        secret = str(current_app.config["SECRET_KEY"])  # Defensive cast
+        secret = str(current_app.config["SECRET_KEY"])  # Cast to string
         s = Serializer(secret, expires_in)
         return s.dumps({"user_id": self.id})
 
     @staticmethod
     def verify_reset_token(token):
-        secret = str(current_app.config["SECRET_KEY"])  # Defensive cast
+        secret = str(current_app.config["SECRET_KEY"])  # Cast to string
         s = Serializer(secret)
         try:
             data = s.loads(token)
         except Exception:
             return None
         return User.query.get(data["user_id"])
+
 
 
 class Payment(db.Model):
