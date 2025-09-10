@@ -27,23 +27,20 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    from itsdangerous import URLSafeTimedSerializer as Serializer
-from flask import current_app
+    def get_reset_token(self, expires_in=600):
+        secret = str(current_app.config["SECRET_KEY"])
+        s = Serializer(secret, salt="password-reset")
+        return s.dumps({"user_id": self.id})
 
-def get_reset_token(self, expires_in=600):
-    secret = str(current_app.config["SECRET_KEY"])  # Ensure it's a string
-    s = Serializer(secret, salt="password-reset")    # Add a salt for clarity
-    return s.dumps({"user_id": self.id})
-
-@staticmethod
-def verify_reset_token(token):
-    secret = str(current_app.config["SECRET_KEY"])  # Ensure it's a string
-    s = Serializer(secret, salt="password-reset")
-    try:
-        data = s.loads(token, max_age=600)  # Optional: enforce expiration
-    except Exception:
-        return None
-    return User.query.get(data["user_id"])
+    @staticmethod
+    def verify_reset_token(token):
+        secret = str(current_app.config["SECRET_KEY"])
+        s = Serializer(secret, salt="password-reset")
+        try:
+            data = s.loads(token, max_age=600)
+        except Exception:
+            return None
+        return User.query.get(data["user_id"])
 
 
 
