@@ -19,7 +19,7 @@ class BaseConfig:
         f"sqlite:///{os.path.join(INSTANCE_DIR, 'sigma.db')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-change-this")
+    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-key-change-this")
     DEBUG = getenv_bool("FLASK_DEBUG")
 
     # Email
