@@ -47,15 +47,9 @@
       {% endif %}
     {% else %}
       <p class="text-gray-700">No active payment plan.</p>
-      <div class="mt-4 space-y-4">
-        <div>
-          <a href="{{ url_for('payments.plan') }}" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">Enroll in a Plan</a>
-          <p class="text-sm text-gray-500 italic mt-1">Use this option if you need a little more time to pay.</p>
-        </div>
-        <div>
-          <a href="{{ url_for('payments.pay', type='one-time') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">One-Time Payment</a>
-          <p class="text-sm text-gray-500 italic mt-1">Use this option if you want to make a lump sum payment.</p>
-        </div>
+      <div class="mt-4 space-x-2">
+        <a href="{{ url_for('payments.plan') }}" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">Enroll in a Plan</a>
+        <a href="{{ url_for('payments.pay', type='one-time') }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">One-Time Payment</a>
       </div>
     {% endif %}
   </div>
