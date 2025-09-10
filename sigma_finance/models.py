@@ -4,6 +4,7 @@ from datetime import datetime
 from werkzeug.security import check_password_hash
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask import current_app
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 
@@ -22,10 +23,13 @@ class User(db.Model, UserMixin):
     payment_plans = db.relationship("PaymentPlan", backref="user", lazy="dynamic")
 
     def set_password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+        self.password_hash = generate_password_hash(password)
+
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
 
     def get_reset_token(self, expires_in=600):
         secret = str(current_app.config["SECRET_KEY"])
