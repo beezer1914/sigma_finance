@@ -28,6 +28,15 @@ def send_password_reset_email(user):
     reset_url = url_for('auth.reset_password', token=token, _external=True)
 
     subject = "Reset Your Sigma Finance Password"
+
+    plain_text = f"""Hi {user.name},
+
+You requested a password reset. Click the link below to set a new password:
+{reset_url}
+
+If you didn’t request this, you can safely ignore it.
+"""
+
     html_content = f"""
         <p>Hi {user.name},</p>
         <p>You requested a password reset. Click below to set a new password:</p>
@@ -35,18 +44,9 @@ def send_password_reset_email(user):
         <p>If you didn’t request this, you can safely ignore it.</p>
     """
 
-    message = Mail(
-        from_email=os.environ.get("SENDGRID_DEFAULT_FROM"),
-        to_emails=user.email,
-        subject=subject,
-        html_content=html_content
-    )
+    return send_email(subject, user.email, plain_text, html_content)
 
-    try:
-        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
-        return response.status_code
-    except Exception as e:
-        print(f"SendGrid error: {e}")
-        return None
+
+
+
 
