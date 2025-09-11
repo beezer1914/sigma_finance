@@ -6,40 +6,40 @@
     {{ form.hidden_tag() }}
 
     <div class="mb-3">
-      {{ form.name.label(class="form-label") }}
-      {{ form.name(class="form-control") }}
+      <label for="name" class="block text-gray-800 font-medium">Full Name</label>
+      {{ form.name(id="name", placeholder="John Doe") }}
       {% for error in form.name.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}
     </div>
 
     <div class="mb-3">
-      {{ form.email.label(class="form-label") }}
-      {{ form.email(class="form-control") }}
+      <label for="email" class="block text-gray-800 font-medium">Email Address</label>
+      {{ form.email(id="email", placeholder="you@example.com") }}
       {% for error in form.email.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}
     </div>
 
     <div class="mb-3">
-      {{ form.password.label(class="form-label") }}
-      {{ form.password(class="form-control") }}
+      <label for="password" class="block text-gray-800 font-medium">Password</label>
+      {{ form.password(id="password", placeholder="••••••••") }}
       {% for error in form.password.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}
     </div>
 
     <div class="mb-3">
-      {{ form.confirm_password.label(class="form-label") }}
-      {{ form.confirm_password(class="form-control") }}
+      <label for="confirm_password" class="block text-gray-800 font-medium">Confirm Password</label>
+      {{ form.confirm_password(id="confirm_password", placeholder="••••••••") }}
       {% for error in form.confirm_password.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}
     </div>
 
     <div class="mb-3">
-      {{ form.invite_code.label(class="form-label") }}
-      {{ form.invite_code(class="form-control", value=request.args.get('code', '')) }}
+      <label for="invite_code" class="block text-gray-800 font-medium">Invite Code</label>
+      {{ form.invite_code(id="invite_code", value=request.args.get('code', ''), placeholder="Enter your invite code") }}
       {% for error in form.invite_code.errors %}
         <div class="text-danger small mt-1">{{ error }}</div>
       {% endfor %}

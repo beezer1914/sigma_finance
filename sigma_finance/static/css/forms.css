@@ -1,0 +1,13 @@
+/* Accessible form field styling for all inputs, selects, and textareas */
+input, select, textarea {
+  @apply w-full px-4 py-3 
+         border border-gray-500 
+         bg-gray-50 
+         rounded-md 
+         text-gray-900 
+         placeholder-gray-600 
+         focus:outline-none 
+         focus:ring-2 focus:ring-blue-600 
+         focus:border-blue-600 
+         transition-colors duration-150 ease-in-out;
+}
