@@ -2,26 +2,44 @@
 {% block title %}One-Time Payment{% endblock %}
 {% block content %}
 <h2>Submit One-Time Payment</h2>
+
 <form method="POST" action="{{ url_for('payments.pay') }}">
   {{ form.hidden_tag() }}
-  <div>
-    {{ form.amount.label }}<br>
-    {{ form.amount() }}
+
+  <div class="mb-3">
+    <label for="amount" class="block text-gray-800 font-medium">Payment Amount</label>
+    {{ form.amount(id="amount", placeholder="Enter amount") }}
+    {% for error in form.amount.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
   </div>
-  <div>
-    {{ form.method.label }}<br>
-    {{ form.method() }}
+
+  <div class="mb-3">
+    <label for="method" class="block text-gray-800 font-medium">Payment Method</label>
+    {{ form.method(id="method") }}
+    {% for error in form.method.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
   </div>
-  <div>
-    {{ form.type.label }}<br>
-    {{ form.type() }}
+
+  <div class="mb-3">
+    <label for="type" class="block text-gray-800 font-medium">Payment Type</label>
+    {{ form.type(id="type") }}
+    {% for error in form.type.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
   </div>
-  <div>
-    {{ form.notes.label }}<br>
-    {{ form.notes() }}
+
+  <div class="mb-3">
+    <label for="notes" class="block text-gray-800 font-medium">Notes</label>
+    {{ form.notes(id="notes", placeholder="Optional notes about this payment") }}
+    {% for error in form.notes.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
   </div>
-  <div>
-    {{ form.submit() }}
-  </div>
+
+  <button type="submit" class="btn btn-primary">
+    {{ form.submit.label.text }}
+  </button>
 </form>
 {% endblock %}

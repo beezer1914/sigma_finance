@@ -1,4 +1,3 @@
-<!-- templates/payments/submit_installment.html -->
 {% extends "base.html" %}
 {% block content %}
 <h3>Submit Installment Payment</h3>
@@ -6,12 +5,33 @@
 
 <form method="POST">
   {{ form.hidden_tag() }}
-  <div class="form-group">
-  {{ form.amount.label }} {{ form.amount(size=20) }}<br>
-  {{ form.method.label }} {{ form.method() }}<br>
-  {{ form.notes.label(class="block text-sm font-medium text-gray-700")}}
-  {{ form.notes(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm")}}
 
-<input type="submit" value="Submit Payment">
+  <div class="mb-3">
+    <label for="amount" class="block text-gray-800 font-medium">Payment Amount</label>
+    {{ form.amount(id="amount", placeholder="Enter amount") }}
+    {% for error in form.amount.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    <label for="method" class="block text-gray-800 font-medium">Payment Method</label>
+    {{ form.method(id="method") }}
+    {% for error in form.method.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    <label for="notes" class="block text-gray-800 font-medium">Notes</label>
+    {{ form.notes(id="notes", placeholder="Optional notes about this payment") }}
+    {% for error in form.notes.errors %}
+      <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">
+    Submit Payment
+  </button>
 </form>
 {% endblock %}
