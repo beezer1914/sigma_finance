@@ -34,13 +34,11 @@ class LoginForm(FlaskForm):
 
     remember_me = BooleanField(
         "Remember Me",
-        render_kw={
-            "class": "mr-2"
-        }
+        render_kw={"class": "mr-2"}
     )
 
     submit = SubmitField(
-        "Login",  # This is the visible button text
+        "Login",  # Visible text on the button
         render_kw={
             "class": (
                 "w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 "
@@ -48,6 +46,8 @@ class LoginForm(FlaskForm):
             )
         }
     )
+
+
 
 
 
