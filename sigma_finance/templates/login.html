@@ -16,7 +16,7 @@
 
       <div>
         {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
-        {{ form.email(id="email", placeholder="you@example.com") }}
+        {{ form.email(id="email") }}
         {% for error in form.email.errors %}
           <div class="text-red-600 text-sm mt-1">{{ error }}</div>
         {% endfor %}
@@ -24,7 +24,7 @@
 
       <div>
         {{ form.password.label(class="block text-sm font-medium text-gray-700") }}
-        {{ form.password(id="password", placeholder="••••••••") }}
+        {{ form.password(id="password") }}
         {% for error in form.password.errors %}
           <div class="text-red-600 text-sm mt-1">{{ error }}</div>
         {% endfor %}
@@ -32,7 +32,7 @@
 
       <div class="flex justify-between items-center text-sm text-gray-600">
         <label class="flex items-center">
-          {{ form.remember_me(id="remember_me", class="mr-2") }} Remember Me
+          {{ form.remember_me(id="remember_me") }} Remember Me
         </label>
         <a href="{{ url_for('auth.forgot_password') }}" class="text-indigo-600 hover:underline">Forgot Password?</a>
       </div>
