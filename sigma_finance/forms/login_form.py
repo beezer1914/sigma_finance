@@ -40,7 +40,7 @@ class LoginForm(FlaskForm):
     )
 
     submit = SubmitField(
-        "Login",
+        "Login",  # This is the visible button text
         render_kw={
             "class": (
                 "w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 "
@@ -48,6 +48,7 @@ class LoginForm(FlaskForm):
             )
         }
     )
+
 
 
 class ForgotPasswordForm(FlaskForm):
