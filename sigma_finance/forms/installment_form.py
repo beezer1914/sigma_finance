@@ -11,8 +11,6 @@ class InstallmentPaymentForm(FlaskForm):
         "Payment Method",
         choices=[
             ("cash", "Cash"),
-            ("zelle", "Zelle"),
-            ("paypal", "PayPal"),
             ("card", "Credit/Debit Card"),
             ("other", "Other")
         ],
