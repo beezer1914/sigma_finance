@@ -37,12 +37,11 @@
         <a href="{{ url_for('auth.forgot_password') }}" class="text-indigo-600 hover:underline">Forgot Password?</a>
       </div>
 
-      <!-- Submit Button -->
-      <div>
-        {{ form.submit() }}
-      </div>
-    </form>
-
+  <!-- Submit Button -->
+  <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition duration-200 ease-in-out">
+    Login
+  </button>
+  
     <!-- Registration Prompt -->
     <p class="text-sm text-gray-600 mt-6 text-center">
       New to the chapter? <a href="{{ url_for('auth.register') }}" class="text-indigo-600 hover:underline font-medium">Create your account</a>

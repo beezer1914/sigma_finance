@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Sigma Finance{% endblock %}</title>
+
+  <!-- Core Stylesheets -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+
+  <!-- Visibility Fix for Submit Button -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/fix.css') }}">
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
   <nav class="bg-blue-600 text-white p-4">
@@ -26,7 +31,7 @@
     </ul>
   </nav>
 
-  <div class="max-w-4xl-auto px-4 py-6">
+  <div class="max-w-4xl mx-auto px-4 py-6">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="my-4 space-y-4">
