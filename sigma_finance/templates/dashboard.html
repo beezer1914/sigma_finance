@@ -6,6 +6,20 @@
   <div class="bg-white shadow-md rounded-lg p-6">
     <h2 class="text-2xl font-semibold text-gray-800">Welcome, {{ current_user.name }}</h2>
     <p class="text-gray-600">Your personal dashboard</p>
+
+    {% if current_user.financial_status == 'financial' %}
+      <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full mt-2">
+        ✅ Financial Member
+      </span>
+    {% elif current_user.financial_status == 'not financial' %}
+      <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full mt-2">
+        ❌ Not Financial
+      </span>
+    {% else %}
+      <span class="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full mt-2">
+        ⚠️ Status: {{ current_user.financial_status }}
+      </span>
+    {% endif %}
   </div>
 
   <!-- Payment Plan Card -->
