@@ -23,6 +23,15 @@
       </select>
     </div>
 
+    <div>
+      <label for="financial_status" class="block text-sm font-medium text-gray-700">Financial Status</label>
+      <select name="financial_status" id="financial_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        <option value="financial" {% if member.financial_status == 'financial' %}selected{% endif %}>Financial</option>
+        <option value="not financial" {% if member.financial_status == 'not financial' %}selected{% endif %}>Not Financial</option>
+        <option value="pending" {% if member.financial_status == 'pending' %}selected{% endif %}>Pending</option>
+      </select>
+    </div>
+
     <div class="flex items-center">
       <input type="checkbox" name="is_active" id="is_active" {% if member.active %}checked{% endif %} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
       <label for="is_active" class="ml-2 block text-sm text-gray-700">Active</label>

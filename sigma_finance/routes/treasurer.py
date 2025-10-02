@@ -99,18 +99,32 @@ def treasurer_reset_user(user_id):
     return redirect(url_for("treasurer_bp.treasurer_manage_members"))
 
 # ✏️ Edit Member
-@treasurer_bp.route('/members/<int:member_id>/edit', methods=['GET', 'POST'], endpoint='treasurer_edit_member')
+@treasurer_bp.route("/edit-member/<int:member_id>", methods=["GET", "POST"])
+@login_required
 def treasurer_edit_member(member_id):
     member = User.query.get_or_404(member_id)
-    if request.method == 'POST':
-        member.name = request.form['name']
-        member.email = request.form['email']
-        member.role = request.form['role']
-        member.active = 'is_active' in request.form
+
+    if request.method == "POST":
+        member.name = request.form["name"]
+        member.email = request.form["email"]
+        member.role = request.form["role"].lower()
+        member.active = "is_active" in request.form
+
+        submitted_status = request.form.get("financial_status")
+        print("Submitted financial status:", submitted_status)
+
+        member.financial_status = submitted_status.lower() if submitted_status else member.financial_status
+        print("Assigned financial status:", member.financial_status)
+
         db.session.commit()
-        flash("Member updated successfully", "success")
-        return redirect(url_for('treasurer_bp.treasurer_manage_members'))
-    return render_template('treasurer/edit_member.html', member=member)
+
+        updated = User.query.get(member.id)
+        print("DB value after commit:", updated.financial_status)
+
+        flash(f"Updated member: {member.name}", "success")
+        return redirect(url_for("treasurer_bp.treasurer_manage_members"))
+
+    return render_template("treasurer/edit_member.html", member=member)
 
 # ❌ Deactivate Member
 @treasurer_bp.route('/members/<int:member_id>/deactivate', methods=['POST'], endpoint='treasurer_deactivate_member')
