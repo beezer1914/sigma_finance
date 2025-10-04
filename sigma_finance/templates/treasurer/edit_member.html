@@ -29,6 +29,7 @@
         <option value="financial" {% if member.financial_status == 'financial' %}selected{% endif %}>Financial</option>
         <option value="not financial" {% if member.financial_status == 'not financial' %}selected{% endif %}>Not Financial</option>
         <option value="pending" {% if member.financial_status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="neophyte" {% if member.financial_status == 'neophyte' %}selected{% endif %}>Neophyte (Exempt)</option>
       </select>
     </div>
 
