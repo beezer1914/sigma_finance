@@ -48,7 +48,7 @@ class User(db.Model, UserMixin):
         return User.query.get(data["user_id"])
     
     def is_neophyte(self):
-        return self.initiation_date and (date.today() - self.initiation_date).days < 365
+        return self.initiation_date and (date.today() - self.initiation_date).days <= 365
     
     def is_financial(self):
         if self.is_neophyte():
