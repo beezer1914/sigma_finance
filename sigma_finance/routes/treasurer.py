@@ -98,7 +98,6 @@ def treasurer_reset_user(user_id):
     flash(f"Payment plans and payments reset for {user.name}", "success")
     return redirect(url_for("treasurer_bp.treasurer_manage_members"))
 
-# ✏️ Edit Member
 @treasurer_bp.route("/edit-member/<int:member_id>", methods=["GET", "POST"])
 @login_required
 def treasurer_edit_member(member_id):
@@ -111,16 +110,16 @@ def treasurer_edit_member(member_id):
         member.active = "is_active" in request.form
 
         submitted_status = request.form.get("financial_status")
-        print("Submitted financial status:", submitted_status)
-
         member.financial_status = submitted_status.lower() if submitted_status else member.financial_status
-        print("Assigned financial status:", member.financial_status)
+
+        initiation_date_raw = request.form.get("initiation_date")
+        if initiation_date_raw:
+            try:
+                member.initiation_date = datetime.strptime(initiation_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                flash("Invalid initiation date format. Please use YYYY-MM-DD.", "error")
 
         db.session.commit()
-
-        updated = User.query.get(member.id)
-        print("DB value after commit:", updated.financial_status)
-
         flash(f"Updated member: {member.name}", "success")
         return redirect(url_for("treasurer_bp.treasurer_manage_members"))
 
@@ -144,20 +143,36 @@ def treasurer_activate_member(member_id):
     flash("Member activated", "success")
     return redirect(url_for('treasurer_bp.treasurer_manage_members'))
 
-# ➕ Add Member
+from datetime import datetime
+from flask import request, redirect, url_for, flash, render_template
+from sigma_finance.models import User
+from sigma_finance.extensions import db
+
 @treasurer_bp.route('/members/add', methods=['GET', 'POST'], endpoint='treasurer_add_member')
 def treasurer_add_member():
     if request.method == 'POST':
+        initiation_date_raw = request.form.get("initiation_date")
+        initiation_date = None
+
+        if initiation_date_raw:
+            try:
+                initiation_date = datetime.strptime(initiation_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                flash("Invalid initiation date format. Please use YYYY-MM-DD.", "error")
+                return redirect(url_for('treasurer_bp.treasurer_add_member'))
+
         new_member = User(
-            name=request.form['name'],
-            email=request.form['email'],
-            role=request.form['role'],
-            active=True
+            name=request.form["name"],
+            email=request.form["email"],
+            role=request.form["role"].lower(),  # normalize casing
+            active=True,
+            initiation_date=initiation_date
         )
-        new_member.set_password(request.form['password'])
+        new_member.set_password(request.form["password"])
         db.session.add(new_member)
         db.session.commit()
-        flash("New member added successfully", "success")
+
+        flash("🕊️ New member added successfully", "success")
         return redirect(url_for('treasurer_bp.treasurer_manage_members'))
 
     return render_template('treasurer/add_members.html')

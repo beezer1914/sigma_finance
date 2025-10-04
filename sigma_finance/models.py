@@ -1,6 +1,6 @@
 from sigma_finance.extensions import db, bcrypt
 from flask_login import UserMixin, current_user
-from datetime import datetime
+from datetime import datetime, date
 from werkzeug.security import check_password_hash
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from flask import current_app
@@ -17,6 +17,7 @@ class User(db.Model, UserMixin):
     status = db.Column(db.Boolean, default=True)
     financial_status = db.Column(db.String(20), default="not financial")
     active = db.Column(db.Boolean, default=True)
+    initiation_date = db.Column(db.Date, nullable=True)
 
     # 🔗 Relationships
     payments = db.relationship("Payment", backref="user", lazy="dynamic")
@@ -45,7 +46,14 @@ class User(db.Model, UserMixin):
         except Exception:
             return None
         return User.query.get(data["user_id"])
-
+    
+    def is_neophyte(self):
+        return self.initiation_date and (date.today() - self.initiation_date).days < 365
+    
+    def is_financial(self):
+        if self.is_neophyte():
+            return True
+        return self.financial_status == "financial"
 
 
 class Payment(db.Model):
@@ -55,17 +63,17 @@ class Payment(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     method = db.Column(db.String(50))
     payment_type = db.Column(db.String(20))  # 'one-time' or 'installment'
+    notes = db.Column(db.String(255))
+
+    # 🔗 Relationship to payment plan
+    plan_id = db.Column(db.Integer, db.ForeignKey("payment_plan.id"), nullable=True)
+    plan = db.relationship("PaymentPlan", backref="payments")
 
     def total_paid(self):
         return sum(p.amount for p in self.payments)
-    
+
     def is_complete(self):
         return self.total_paid() >= self.total_amount
-
-    notes = db.Column(db.String(255))
-
-    plan_id = db.Column(db.Integer, db.ForeignKey("payment_plan.id"), nullable=True)
-    plan = db.relationship("PaymentPlan", backref="payments")    
 
 
 class PaymentPlan(db.Model):
