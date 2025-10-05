@@ -48,6 +48,8 @@ def create_app():
     app.register_blueprint(invite_bp, url_prefix="/treasurer/invite")
     app.register_blueprint(webhook_bp)  # 👈 Stripe webhook listener
 
+    app.jinja_env.globals.update(min=min, max=max)
+
     # Root route
     @app.route("/")
     def index():
