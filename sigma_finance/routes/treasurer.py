@@ -13,6 +13,7 @@ from sigma_finance.utils.decorators import role_required
 from sigma_finance.utils.generate_invite import generate_invite_code
 from sigma_finance.utils.send_invite_email import send_email
 from sigma_finance.forms import invite_form
+from sqlalchemy.orm import joinedload
 from datetime import datetime
 
 treasurer_bp = Blueprint('treasurer_bp', __name__, url_prefix='/treasurer', template_folder='treasurer')
@@ -27,12 +28,15 @@ def restrict_to_treasurers():
         flash("Access denied: Treasurer-only area.", "danger")
         return redirect(url_for('index'))
 
-# 📊 Dashboard
+# 📊 Optimized Dashboard
 @treasurer_bp.route('/', endpoint='treasurer_dashboard')
 def treasurer_dashboard():
+    # These functions are now optimized (see stats.py)
     total_dues = get_total_payments()
     unpaid_members = get_unpaid_members()
     active_plan_users = get_users_with_active_plans()
+    
+    # Calculate outstanding balances
     outstanding_balances = {
         user.id: get_user_outstanding_balance(user.id)
         for user in active_plan_users
@@ -47,57 +51,85 @@ def treasurer_dashboard():
         active_plan_users=active_plan_users
     )
 
+# 💰 Optimized Payments View with Pagination
 @treasurer_bp.route('/payments', endpoint='treasurer_payments')
 @login_required
 def treasurer_payments():
-    payments = (
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    # OPTIMIZATION: Eager load user relationship and paginate
+    pagination = (
         Payment.query
+        .options(joinedload(Payment.user))  # Prevent N+1 queries
         .order_by(Payment.date.desc())
-        .limit(100)
-        .all()
+        .paginate(page=page, per_page=per_page, error_out=False)
     )
+    
+    payments = pagination.items
 
     return render_template(
         'treasurer/payments.html',
-        payments=payments,  # 👈 This is the missing piece
+        payments=payments,
+        pagination=pagination,
         payment_type_summary=get_payment_summary_by_type(),
         payment_method_stats=get_payment_method_stats()
     )
 
-# 👥 Legacy Members View
+# 👥 Optimized Members View
 @treasurer_bp.route('/members', endpoint='treasurer_members')
 def treasurer_members():
+    # OPTIMIZATION: Eager load payment relationships
+    all_members = (
+        User.query
+        .options(joinedload(User.payments))
+        .options(joinedload(User.payment_plans))
+        .order_by(User.name)
+        .all()
+    )
+    
+    unpaid_members = get_unpaid_members()
+    active_plan_users = get_users_with_active_plans()
+    
     return render_template(
         'treasurer/members.html',
-        all_members=User.query.order_by(User.name).all(),
-        unpaid_members=get_unpaid_members(),
-        active_plan_users=get_users_with_active_plans()
+        all_members=all_members,
+        unpaid_members=unpaid_members,
+        active_plan_users=active_plan_users
     )
 
-# 🔧 Manage Members (New View)
+# 🔧 Manage Members (Optimized)
 @treasurer_bp.route('/manage-members', endpoint='treasurer_manage_members')
 def treasurer_manage_members():
+    # Simple query - no joins needed
     users = User.query.order_by(User.name).all()
     return render_template('treasurer/manage-members.html', users=users)
 
-# 🔁 Reset Payments
+# 🔁 Reset Payments (Transaction-safe)
 @treasurer_bp.route("/reset_user/<int:user_id>", methods=["POST"], endpoint='treasurer_reset_user')
 def treasurer_reset_user(user_id):
     user = User.query.get_or_404(user_id)
 
-    for plan in user.payment_plans:
-        for payment in plan.payments:
-            db.session.delete(payment)
-        db.session.delete(plan)
-
-    archived = ArchivedPaymentPlan.query.filter_by(user_id=user.id).all()
-    for plan in archived:
-        db.session.delete(plan)
-
-    db.session.commit()
-    flash(f"Payment plans and payments reset for {user.name}", "success")
+    try:
+        # Use a transaction for safety
+        # Delete payments first (foreign key constraint)
+        Payment.query.filter_by(user_id=user.id).delete()
+        
+        # Delete payment plans
+        PaymentPlan.query.filter_by(user_id=user.id).delete()
+        
+        # Delete archived plans
+        ArchivedPaymentPlan.query.filter_by(user_id=user.id).delete()
+        
+        db.session.commit()
+        flash(f"Payment plans and payments reset for {user.name}", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error resetting user: {str(e)}", "danger")
+    
     return redirect(url_for("treasurer_bp.treasurer_manage_members"))
 
+# ✏️ Edit Member
 @treasurer_bp.route("/edit-member/<int:member_id>", methods=["GET", "POST"])
 @login_required
 def treasurer_edit_member(member_id):
@@ -143,11 +175,7 @@ def treasurer_activate_member(member_id):
     flash("Member activated", "success")
     return redirect(url_for('treasurer_bp.treasurer_manage_members'))
 
-from datetime import datetime
-from flask import request, redirect, url_for, flash, render_template
-from sigma_finance.models import User
-from sigma_finance.extensions import db
-
+# ➕ Add Member
 @treasurer_bp.route('/members/add', methods=['GET', 'POST'], endpoint='treasurer_add_member')
 def treasurer_add_member():
     if request.method == 'POST':
