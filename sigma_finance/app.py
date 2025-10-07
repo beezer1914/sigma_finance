@@ -16,6 +16,7 @@ from sigma_finance.routes.invite import invite_bp
 from sigma_finance.routes.webhooks import webhook_bp  # 👈 new webhook route
 from sigma_finance.config import LocalConfig,ProductionConfig
 from sigma_finance.config import read_render_secret
+from sigma_finance.extensions import cache
 
 # Logging setup
 logging.basicConfig(
@@ -39,6 +40,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     Migrate(app, db)
+    cache.init_app(app)
 
     # Register blueprints
     app.register_blueprint(auth)
