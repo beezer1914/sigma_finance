@@ -7,6 +7,7 @@ from sigma_finance.extensions import db
 from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.routes.payments import archive_plan_if_completed
+from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
 
 webhook_bp = Blueprint("webhook", __name__)
 
@@ -74,6 +75,12 @@ def stripe_webhook():
             db.session.add(new_payment)
             db.session.commit()
             print("✅ Payment logged to DB")
+
+            # 🔄 INVALIDATE CACHE - ADD THESE LINES
+            invalidate_payment_cache()
+            invalidate_user_cache(user.id)
+            if plan_id:
+                invalidate_plan_cache()
 
             update_financial_status(user.id)
 

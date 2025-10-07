@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
+from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
 
 
 payments = Blueprint("payments", __name__)
@@ -116,6 +117,13 @@ def pay():
         )
         db.session.add(payment)
         db.session.commit()
+        
+        # 🔄 INVALIDATE CACHE - ADD THESE LINES
+        invalidate_payment_cache()
+        invalidate_user_cache(current_user.id)
+        if plan:
+            invalidate_plan_cache()
+        
         update_financial_status(current_user.id)
         flash("Manual payment submitted!", "success")
 

@@ -30,6 +30,10 @@ class BaseConfig:
     STRIPE_SECRET_KEY = read_render_secret("STRIPE_SECRET_KEY")
     STRIPE_PUBLISHABLE_KEY = read_render_secret("STRIPE_PUBLISHABLE_KEY")
     STRIPE_WEBHOOK_SECRET = read_render_secret("STRIPE_WEBHOOK_SECRET")
+    
+    # Cache Configuration - ADD THIS SECTION
+    CACHE_TYPE = "SimpleCache"  # Default for local development
+    CACHE_DEFAULT_TIMEOUT = 300  # 5 minutes
 
 class LocalConfig(BaseConfig):
     DEBUG = True
@@ -37,7 +41,17 @@ class LocalConfig(BaseConfig):
     STRIPE_SECRET_KEY = ""
     STRIPE_PUBLISHABLE_KEY = ""
     STRIPE_WEBHOOK_SECRET = ""
+    
+    # Use simple in-memory cache for local dev
+    CACHE_TYPE = "SimpleCache"
+    CACHE_DEFAULT_TIMEOUT = 300
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
     TESTING = False
+    
+    # Use Redis for production caching - ADD THIS SECTION
+    CACHE_TYPE = "RedisCache"
+    CACHE_REDIS_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"
+    CACHE_DEFAULT_TIMEOUT = 600  # 10 minutes in production
+    CACHE_KEY_PREFIX = "sigma_finance_"  # Prefix all cache keys

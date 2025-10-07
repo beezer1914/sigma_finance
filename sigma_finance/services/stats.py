@@ -1,11 +1,12 @@
-# sigma_finance/services/stats.py - HEAVILY OPTIMIZED VERSION
+# sigma_finance/services/stats.py - WITH CACHING
 
-from sigma_finance.extensions import db
+from sigma_finance.extensions import db, cache  # Add cache import
 from sigma_finance.models import User, Payment, PaymentPlan
 from sqlalchemy import func, and_, or_
 from datetime import datetime
 
-# 🧮 Total amount paid by all users - OPTIMIZED
+# 🧮 Total amount paid by all users - CACHED
+@cache.memoize(timeout=300)  # Cache for 5 minutes
 def get_total_payments():
     """
     Single aggregate query - MUCH faster than loading all payments
@@ -14,7 +15,8 @@ def get_total_payments():
     return float(result or 0)
 
 
-# 👥 Users with active payment plans - OPTIMIZED
+# 👥 Users with active payment plans - CACHED
+@cache.memoize(timeout=300)
 def get_users_with_active_plans():
     """
     Use a join instead of loading all plans then filtering
@@ -28,7 +30,8 @@ def get_users_with_active_plans():
     )
 
 
-# 📅 Payments made this month - OPTIMIZED
+# 📅 Payments made this month - CACHED
+@cache.memoize(timeout=600)  # Cache for 10 minutes
 def get_monthly_payments():
     """
     Filter at database level, not in Python
@@ -44,7 +47,8 @@ def get_monthly_payments():
     )
 
 
-# 🧾 Total paid by a specific user - OPTIMIZED
+# 🧾 Total paid by a specific user - CACHED
+@cache.memoize(timeout=300)
 def get_user_total_paid(user_id):
     """
     Single aggregate query instead of loading all payments
@@ -57,7 +61,8 @@ def get_user_total_paid(user_id):
     return float(result or 0)
 
 
-# 📉 Outstanding balance for a user's active plan - OPTIMIZED
+# 📉 Outstanding balance for a user's active plan - CACHED
+@cache.memoize(timeout=180)  # Cache for 3 minutes (changes more frequently)
 def get_user_outstanding_balance(user_id):
     """
     Combined query to get plan and payment sum in one go
@@ -88,7 +93,8 @@ def get_user_outstanding_balance(user_id):
     return float(plan.total_amount) - float(paid)
 
 
-# 📋 Summary of payments by type - OPTIMIZED
+# 📋 Summary of payments by type - CACHED
+@cache.memoize(timeout=300)
 def get_payment_summary_by_type():
     """
     Use COUNT instead of loading all records
@@ -104,9 +110,10 @@ def get_payment_summary_by_type():
     return summary
 
 
-# 🧮 Count of unpaid members - HEAVILY OPTIMIZED
+# 🧮 Count of unpaid members - CACHED
 DUES_AMOUNT = 200  # Move to config later
 
+@cache.memoize(timeout=300)
 def get_unpaid_members():
     """
     Ultra-optimized query using subqueries
@@ -145,7 +152,8 @@ def get_unpaid_members():
     return unpaid_members
 
 
-# 📊 Payment method breakdown - OPTIMIZED
+# 📊 Payment method breakdown - CACHED
+@cache.memoize(timeout=300)
 def get_payment_method_stats():
     """
     Use COUNT instead of loading records
@@ -165,7 +173,8 @@ def get_payment_method_stats():
     return stats
 
 
-# 📈 Get payment trends - NEW FUNCTION
+# 📈 Get payment trends - CACHED
+@cache.memoize(timeout=3600)  # Cache for 1 hour (doesn't change often)
 def get_payment_trends(months=6):
     """
     Get monthly payment totals for the last N months
@@ -199,7 +208,8 @@ def get_payment_trends(months=6):
     ]
 
 
-# 🎯 Get member financial summary - NEW FUNCTION
+# 🎯 Get member financial summary - CACHED
+@cache.memoize(timeout=300)
 def get_member_financial_summary(user_id):
     """
     Get comprehensive financial summary for a member in one query
@@ -232,7 +242,8 @@ def get_member_financial_summary(user_id):
     }
 
 
-# 🔍 Search members efficiently - NEW FUNCTION
+# 🔍 Search members efficiently
+@cache.memoize(timeout=300)
 def search_members(query_string, limit=20):
     """
     Search members by name or email with limit
@@ -250,3 +261,28 @@ def search_members(query_string, limit=20):
         .limit(limit)
         .all()
     )
+
+
+# 🔄 CACHE INVALIDATION FUNCTIONS
+def invalidate_payment_cache():
+    """Clear all payment-related cache when payments change"""
+    cache.delete_memoized(get_total_payments)
+    cache.delete_memoized(get_payment_summary_by_type)
+    cache.delete_memoized(get_payment_method_stats)
+    cache.delete_memoized(get_unpaid_members)
+    cache.delete_memoized(get_monthly_payments)
+    # Don't delete get_payment_trends as it's less frequently changing
+
+
+def invalidate_user_cache(user_id):
+    """Clear cache for a specific user"""
+    cache.delete_memoized(get_user_total_paid, user_id)
+    cache.delete_memoized(get_user_outstanding_balance, user_id)
+    cache.delete_memoized(get_member_financial_summary, user_id)
+    cache.delete_memoized(get_unpaid_members)  # Unpaid list might change
+
+
+def invalidate_plan_cache():
+    """Clear plan-related cache"""
+    cache.delete_memoized(get_users_with_active_plans)
+    cache.delete_memoized(get_unpaid_members)
