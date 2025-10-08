@@ -48,7 +48,13 @@ class User(db.Model, UserMixin):
         return User.query.get(data["user_id"])
     
     def is_neophyte(self):
-        return self.initiation_date and (date.today() - self.initiation_date).days <= 365
+    # Check if explicitly marked as neophyte
+        if self.financial_status == "neophyte":
+            return True
+    # Also check if initiated within last year
+        if self.initiation_date and (date.today() - self.initiation_date).days <= 365:
+            return True
+        return False
     
     def is_financial(self):
         if self.is_neophyte():
