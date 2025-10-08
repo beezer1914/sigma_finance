@@ -148,6 +148,11 @@ def get_unpaid_members():
         .order_by(User.name)
         .all()
     )
+
+    unpaid_members = [
+        user for user in unpaid_members
+        if not (hasattr(user, 'is_neophyte') and user.is_neophyte)
+    ]
     
     return unpaid_members
 
