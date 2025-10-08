@@ -117,14 +117,21 @@ DUES_AMOUNT = 200  # Move to config later
 def get_unpaid_members():
     """
     Ultra-optimized query using subqueries
-    
-    Before: Load all users, all payments, loop in Python - SLOW!
-    After: Single SQL query with subqueries - FAST!
+    Only counts payments from current dues year (Oct 1 - Sept 30)
     """
+    from datetime import datetime
     
-    # Subquery: Users who have paid $200 or more
+    # Determine current dues year start date (October 1)
+    today = datetime.utcnow()
+    if today.month >= 10:  # October or later
+        dues_year_start = datetime(today.year, 10, 1)
+    else:  # Before October
+        dues_year_start = datetime(today.year - 1, 10, 1)
+    
+    # Subquery: Users who have paid $200 or more this dues year
     paid_users_subquery = (
         db.session.query(Payment.user_id)
+        .filter(Payment.date >= dues_year_start)  # Only count from Oct 1 onwards
         .group_by(Payment.user_id)
         .having(func.sum(Payment.amount) >= DUES_AMOUNT)
         .subquery()
@@ -138,7 +145,7 @@ def get_unpaid_members():
     )
     
     # Main query: Find users NOT in either subquery
-    unpaid_members = (
+    all_unpaid = (
         db.session.query(User)
         .filter(
             User.active == True,
@@ -148,10 +155,11 @@ def get_unpaid_members():
         .order_by(User.name)
         .all()
     )
-
+    
+    # Filter out neophytes (they are exempt from dues)
     unpaid_members = [
-        user for user in unpaid_members
-        if not (hasattr(user, 'is_neophyte') and user.is_neophyte)
+        user for user in all_unpaid 
+        if not (hasattr(user, 'is_neophyte') and user.is_neophyte())
     ]
     
     return unpaid_members
