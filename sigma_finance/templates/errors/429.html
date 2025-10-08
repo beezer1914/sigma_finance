@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
+    
+    <!-- Icon -->
+    <div class="mb-6">
+      <svg class="mx-auto h-16 w-16 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+    </div>
+
+    <!-- Header -->
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Too Many Requests</h1>
+    <p class="text-lg text-gray-600 mb-6">Whoa there! Slow down a bit.</p>
+
+    <!-- Message -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
+      <p class="text-sm text-gray-700">
+        You've made too many requests in a short period of time. This is a security measure to protect the system.
+      </p>
+    </div>
+
+    <!-- Instructions -->
+    <div class="text-left mb-6 space-y-2">
+      <p class="text-sm text-gray-600">
+        <strong>What you can do:</strong>
+      </p>
+      <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+        <li>Wait a few minutes before trying again</li>
+        <li>Make sure you're entering the correct information</li>
+        <li>If you continue to have issues, contact the treasurer</li>
+      </ul>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="space-y-3">
+      <a href="{{ url_for('index') }}" 
+         class="block w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition">
+        Return to Home
+      </a>
+      <button onclick="history.back()" 
+              class="block w-full bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 transition">
+        Go Back
+      </button>
+    </div>
+
+    <!-- Help Text -->
+    <p class="text-xs text-gray-500 mt-6">
+      If you believe this is an error, please contact support.
+    </p>
+  </div>
+</div>
+{% endblock %}
