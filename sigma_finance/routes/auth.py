@@ -9,6 +9,7 @@ from sigma_finance.forms.register_form import RegisterForm
 from sigma_finance.extensions import db
 from sigma_finance.utils.decorators import role_required
 from sigma_finance.utils.send_invite_email import send_password_reset_email
+from sigma_finance.extensions import limiter
 
 auth = Blueprint("auth", __name__)
 
@@ -40,11 +41,9 @@ def get_dashboard_route(user):
     }.get(user.role, "index")
 
 @auth.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")  # Prevent brute force attacks
 def login():
     if current_user.is_authenticated:
-        print("Already authenticated as:", current_user.email)
-        print("Role:", current_user.role)
-        print("Redirecting to:", get_dashboard_route(current_user))
         return redirect(url_for(get_dashboard_route(current_user)))
 
     form = LoginForm()
@@ -53,14 +52,9 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user, remember=True)
             flash("Logged in successfully!", "success")
-            print("Logged in as:", user.email)
-            print("Role:", user.role)
-            print("Redirecting to:", get_dashboard_route(user))
             return redirect(url_for(get_dashboard_route(user)))
         flash("Invalid credentials", "danger")
-    else:
-        print("Form errors:", form.errors)
-
+    
     return render_template("login.html", form=form)
 
 @auth.route("/logout")
@@ -70,6 +64,7 @@ def logout():
     return redirect(url_for("auth.login"))
 
 @auth.route("/register", methods=["GET", "POST"])
+@limiter.limit("3 per hour")  # Limit registration attempts
 def register():
     form = RegisterForm()
 
@@ -111,6 +106,7 @@ def register():
 
 
 @auth.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("3 per hour")  # Limit password reset requests
 def forgot_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():

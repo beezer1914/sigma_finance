@@ -12,7 +12,7 @@ from decimal import Decimal
 from sigma_finance.utils.status_updater import update_financial_status
 import stripe
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
-
+from sigma_finance.extensions import limiter
 
 payments = Blueprint("payments", __name__)
 
@@ -62,6 +62,7 @@ def archive_plan_if_completed(plan, user_id, silent=False):
 
 @payments.route("/pay", methods=["GET", "POST"])
 @login_required
+@limiter.limit("10 per minute")  # prevent payment spam
 def pay():
     stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
     plan = PaymentPlan.query.filter_by(user_id=current_user.id).first()
@@ -105,6 +106,7 @@ def pay():
                 }
             )
             return redirect(session.url, code=303)
+        
 
         # Manual payment logic
         payment = Payment(
@@ -133,6 +135,7 @@ def pay():
         return redirect(url_for("dashboard.show_dashboard"))
 
     return render_template(template, form=form, plan=plan)
+
 
 
 @payments.route("/pay/plan", methods=["GET", "POST"])
@@ -182,6 +185,7 @@ def plan():
 
 @payments.route("/create-one-time-session", methods=["POST"])
 @login_required
+@limiter.limit("5 per minute")  # prevent abuse
 def create_one_time_session():
     stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
 

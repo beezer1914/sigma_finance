@@ -3,8 +3,9 @@ import os
 from flask import Flask, render_template
 from flask_migrate import Migrate
 
+
 from sigma_finance.config import LocalConfig  # or switch to ProductionConfig
-from sigma_finance.extensions import db, bcrypt, login_manager
+from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter
 from sigma_finance.models import User
 
 # Blueprints
@@ -16,7 +17,6 @@ from sigma_finance.routes.invite import invite_bp
 from sigma_finance.routes.webhooks import webhook_bp  # 👈 new webhook route
 from sigma_finance.config import LocalConfig,ProductionConfig
 from sigma_finance.config import read_render_secret
-from sigma_finance.extensions import cache
 
 # Logging setup
 logging.basicConfig(
@@ -33,6 +33,8 @@ def create_app():
     app.config.from_object(config_class)
     print(f"Using configuration: {config_class}")
 
+    
+
 
     # Initialize extensions
     db.init_app(app)
@@ -41,6 +43,7 @@ def create_app():
     login_manager.login_view = "auth.login"
     Migrate(app, db)
     cache.init_app(app)
+    limiter.init_app(app)
 
     # Register blueprints
     app.register_blueprint(auth)
@@ -61,6 +64,11 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    # Error handler for rate limit exceeded
+    @app.errorhandler(429)
+    def rate_limit_exceeded(error):
+        return render_template('errors/429.html'), 429
 
     # Optional: Print all routes for debugging
     for rule in app.url_map.iter_rules():

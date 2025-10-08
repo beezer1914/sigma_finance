@@ -55,3 +55,6 @@ class ProductionConfig(BaseConfig):
     CACHE_REDIS_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"
     CACHE_DEFAULT_TIMEOUT = 600  # 10 minutes in production
     CACHE_KEY_PREFIX = "sigma_finance_"  # Prefix all cache keys
+
+    #Rate Limiting with Redis
+    RATELIMIT_STORAGE_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"
