@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 
 
 from sigma_finance.config import LocalConfig  # or switch to ProductionConfig
-from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter
+from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter, talisman
 from sigma_finance.models import User
 
 # Blueprints
@@ -44,6 +44,58 @@ def create_app():
     Migrate(app, db)
     cache.init_app(app)
     limiter.init_app(app)
+
+
+    # Initialize Talisman (Security Headers) - ONLY IN PRODUCTION
+    if not app.debug:
+        talisman.init_app(app,
+            force_https=True,
+            strict_transport_security=True,
+            strict_transport_security_max_age=31536000,  # 1 year
+            content_security_policy={
+                'default-src': "'self'",
+                'script-src': [
+                    "'self'",
+                    "'unsafe-inline'",  # Needed for inline JS
+                    'https://js.stripe.com',
+                    'https://cdnjs.cloudflare.com'
+                ],
+                'style-src': [
+                    "'self'",
+                    "'unsafe-inline'"  # Needed for Tailwind
+                ],
+                'img-src': [
+                    "'self'",
+                    'data:',
+                    'https:'
+                ],
+                'font-src': [
+                    "'self'",
+                    'https://cdnjs.cloudflare.com'
+                ],
+                'connect-src': [
+                    "'self'",
+                    'https://api.stripe.com'
+                ],
+                'frame-src': [
+                    "'self'",
+                    'https://js.stripe.com',
+                    'https://hooks.stripe.com'
+                ]
+            },
+            content_security_policy_nonce_in=['script-src'],
+            feature_policy={
+                'geolocation': "'none'",
+                'camera': "'none'",
+                'microphone': "'none'"
+            },
+            # Set secure session cookie
+            session_cookie_secure=True,
+            session_cookie_samesite='Lax'
+        )
+    
+    # Add min/max to Jinja2
+    app.jinja_env.globals.update(min=min, max=max)
 
     # Register blueprints
     app.register_blueprint(auth)
