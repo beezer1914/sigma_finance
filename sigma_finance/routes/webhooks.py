@@ -27,17 +27,25 @@ def stripe_webhook():
     sig_header = request.headers.get("Stripe-Signature")
 
     # SECURITY CHECK 1: Verify Stripe signature
+    webhook_secret = current_app.config.get("STRIPE_WEBHOOK_SECRET")
+
+    if not webhook_secret:
+        print("❌ STRIPE_WEBHOOK_SECRET not configured!")
+        return "Webhook secret not configured", 500
+
     try:
         event = stripe.Webhook.construct_event(
             payload,
             sig_header,
-            current_app.config["STRIPE_WEBHOOK_SECRET"]
+            webhook_secret
         )
     except ValueError as e:
         print(f"❌ Invalid payload: {e}")
         return "Invalid payload", 400
     except stripe.error.SignatureVerificationError as e:
         print(f"❌ Invalid signature: {e}")
+        print(f"   Signature header present: {bool(sig_header)}")
+        print(f"   Webhook secret configured: {bool(webhook_secret)}")
         return "Invalid signature", 400
 
     print(f"📦 Event type: {event['type']}")
