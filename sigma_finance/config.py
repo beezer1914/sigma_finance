@@ -49,17 +49,61 @@ class LocalConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     DEBUG = False
     TESTING = False
-    
+
     # Use Redis for production caching - ADD THIS SECTION
     CACHE_TYPE = "RedisCache"
     CACHE_REDIS_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"
     CACHE_DEFAULT_TIMEOUT = 600  # 10 minutes in production
     CACHE_KEY_PREFIX = "sigma_finance_"  # Prefix all cache keys
-    
+
     # Secure session cookies
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
-    #Rate Limiting with Redis
+    # Rate Limiting with Redis
     RATELIMIT_STORAGE_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"
+
+    @classmethod
+    def validate(cls):
+        """
+        Validate all required environment variables are set in production.
+        Raises ValueError if any required variables are missing.
+        """
+        required_vars = {
+            'FLASK_SECRET_KEY': cls.SECRET_KEY,
+            'DATABASE_URL': cls.SQLALCHEMY_DATABASE_URI,
+            'REDIS_URL': read_render_secret("REDIS_URL"),
+            'STRIPE_SECRET_KEY': cls.STRIPE_SECRET_KEY,
+            'STRIPE_PUBLISHABLE_KEY': cls.STRIPE_PUBLISHABLE_KEY,
+            'STRIPE_WEBHOOK_SECRET': cls.STRIPE_WEBHOOK_SECRET,
+            'SENDGRID_API_KEY': cls.SENDGRID_API_KEY,
+            'DEFAULT_FROM_EMAIL': cls.DEFAULT_FROM_EMAIL
+        }
+
+        missing = []
+        invalid = []
+
+        for var_name, var_value in required_vars.items():
+            if not var_value:
+                missing.append(var_name)
+            # Check for default/placeholder values
+            elif var_name == 'FLASK_SECRET_KEY' and var_value == "dev-key-change-this":
+                invalid.append(f"{var_name} (using insecure default)")
+            elif var_name == 'DATABASE_URL' and 'sqlite' in str(var_value).lower():
+                invalid.append(f"{var_name} (using SQLite instead of PostgreSQL)")
+
+        if missing or invalid:
+            error_msg = "Production configuration validation failed!\n"
+            if missing:
+                error_msg += f"\n❌ Missing required variables in Render dashboard:\n"
+                for var in missing:
+                    error_msg += f"   - {var}\n"
+            if invalid:
+                error_msg += f"\n⚠️  Invalid configuration values:\n"
+                for var in invalid:
+                    error_msg += f"   - {var}\n"
+            error_msg += "\nPlease set these in your Render dashboard under Environment."
+            raise ValueError(error_msg)
+
+        return True

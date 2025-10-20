@@ -4,7 +4,7 @@ from flask import Flask, render_template
 from flask_migrate import Migrate
 
 
-from sigma_finance.config import LocalConfig  # or switch to ProductionConfig
+from sigma_finance.config import LocalConfig, ProductionConfig, read_render_secret
 from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter, talisman
 from sigma_finance.models import User
 
@@ -14,9 +14,7 @@ from sigma_finance.routes.show_dashboard import dashboard
 from sigma_finance.routes.payments import payments
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
-from sigma_finance.routes.webhooks import webhook_bp  # 👈 new webhook route
-from sigma_finance.config import LocalConfig,ProductionConfig
-from sigma_finance.config import read_render_secret
+from sigma_finance.routes.webhooks import webhook_bp
 
 # Logging setup
 logging.basicConfig(
@@ -28,13 +26,22 @@ def create_app():
     app = Flask(__name__)
 
     # Use CONFIG_CLASS env var to toggle between LocalConfig and ProductionConfig
-
     config_class = read_render_secret("CONFIG_CLASS") or "sigma_finance.config.LocalConfig"
     app.config.from_object(config_class)
     print(f"Using configuration: {config_class}")
 
-    
-
+    # Validate production configuration
+    if not app.debug and config_class == "sigma_finance.config.ProductionConfig":
+        try:
+            ProductionConfig.validate()
+            print("✅ Production configuration validated successfully")
+        except ValueError as e:
+            print(f"\n{'='*60}")
+            print(f"CONFIGURATION ERROR")
+            print(f"{'='*60}")
+            print(str(e))
+            print(f"{'='*60}\n")
+            raise
 
     # Initialize extensions
     db.init_app(app)
@@ -43,7 +50,12 @@ def create_app():
     login_manager.login_view = "auth.login"
     Migrate(app, db)
     cache.init_app(app)
-    limiter.init_app(app)
+
+    # Initialize rate limiter with proper storage (Redis in production, memory in dev)
+    if app.config.get('RATELIMIT_STORAGE_URL'):
+        limiter.init_app(app, storage_uri=app.config['RATELIMIT_STORAGE_URL'])
+    else:
+        limiter.init_app(app)  # Falls back to in-memory storage for local dev
 
 
     # Initialize Talisman (Security Headers) - ONLY IN PRODUCTION
@@ -93,7 +105,7 @@ def create_app():
             session_cookie_secure=True,
             session_cookie_samesite='Lax'
         )
-    
+
     # Add min/max to Jinja2
     app.jinja_env.globals.update(min=min, max=max)
 
@@ -103,9 +115,7 @@ def create_app():
     app.register_blueprint(payments)
     app.register_blueprint(treasurer_bp, url_prefix="/treasurer")
     app.register_blueprint(invite_bp, url_prefix="/treasurer/invite")
-    app.register_blueprint(webhook_bp)  # 👈 Stripe webhook listener
-
-    app.jinja_env.globals.update(min=min, max=max)
+    app.register_blueprint(webhook_bp)
 
     # Root route
     @app.route("/")
@@ -122,9 +132,10 @@ def create_app():
     def rate_limit_exceeded(error):
         return render_template('errors/429.html'), 429
 
-    # Optional: Print all routes for debugging
-    for rule in app.url_map.iter_rules():
-        print(f"{rule.endpoint}: {rule.rule}")
+    # Debug: Print all routes (only in development)
+    if app.debug:
+        for rule in app.url_map.iter_rules():
+            print(f"{rule.endpoint}: {rule.rule}")
 
     return app
 
