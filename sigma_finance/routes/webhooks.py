@@ -42,7 +42,7 @@ def stripe_webhook():
 
     print(f"📦 Event type: {event['type']}")
     event_id = event.get('id')
-    
+
     # SECURITY CHECK 2: Verify event timestamp (reject events older than 5 minutes)
     event_timestamp = event.get('created')
     if event_timestamp:
@@ -52,19 +52,18 @@ def stripe_webhook():
             print(f"⚠️ Event too old: {time_diff.total_seconds()}s")
             return "Event timestamp too old", 400
 
-    # SECURITY CHECK 3: Check for duplicate events (idempotency)
-    existing_event = WebhookEvent.query.filter_by(
-        event_type=event["type"],
-        payload=payload.decode("utf-8")
-    ).first()
-    
-    if existing_event and existing_event.processed:
-        print(f"⚠️ Duplicate webhook detected: {event_id}")
-        return "Event already processed", 200  # Return 200 to prevent Stripe retries
+    # SECURITY CHECK 3: Check for duplicate events using event_id (idempotency)
+    if event_id:
+        existing_event = WebhookEvent.query.filter_by(event_id=event_id).first()
+
+        if existing_event and existing_event.processed:
+            print(f"⚠️ Duplicate webhook detected: {event_id}")
+            return "Event already processed", 200  # Return 200 to prevent Stripe retries
 
     # Audit log for all events
     try:
         audit = WebhookEvent(
+            event_id=event_id,
             event_type=event["type"],
             payload=payload.decode("utf-8"),
             received_at=datetime.utcnow(),

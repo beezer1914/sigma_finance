@@ -75,12 +75,6 @@ class Payment(db.Model):
     plan_id = db.Column(db.Integer, db.ForeignKey("payment_plan.id"), nullable=True)
     plan = db.relationship("PaymentPlan", backref="payments")
 
-    def total_paid(self):
-        return sum(p.amount for p in self.payments)
-
-    def is_complete(self):
-        return self.total_paid() >= self.total_amount
-
 
 class PaymentPlan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,12 +84,16 @@ class PaymentPlan(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     installment_amount = db.Column(db.Numeric(10, 2), nullable=False)
-    status = db.Column(db.String(20), default="active") 
+    status = db.Column(db.String(20), default="active")
     expected_installments = db.Column(db.Integer, nullable=True)
     enforce_installments = db.Column(db.Boolean, default=False)
 
     def total_paid(self):
         return sum(payment.amount for payment in self.payments)
+
+    def is_complete(self):
+        """Check if the payment plan is complete"""
+        return self.total_paid() >= self.total_amount
 
 class ArchivedPaymentPlan(db.Model):
     __tablename__ = "archived_payment_plan"
