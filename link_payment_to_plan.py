@@ -5,9 +5,12 @@ Use this if you forgot to link a payment when creating it
 """
 
 from sigma_finance.app import create_app
-from sigma_finance.models import Payment, User, PaymentPlan
+from sigma_finance.models import Payment, User, PaymentPlan, ArchivedPaymentPlan
 from sigma_finance.extensions import db
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
+from sigma_finance.utils.status_updater import update_financial_status
+from datetime import datetime, timezone
+from decimal import Decimal
 
 def link_payment_to_plan():
     app = create_app()
@@ -75,6 +78,42 @@ def link_payment_to_plan():
             db.session.commit()
 
             print(f"\n✅ SUCCESS! Payment #{payment.id} linked to plan #{active_plan.id}")
+
+            # Check if plan is now complete
+            all_payments = Payment.query.filter_by(
+                user_id=user.id,
+                plan_id=active_plan.id
+            ).all()
+
+            total_paid = sum(p.amount for p in all_payments)
+            print(f"\n📊 Plan Progress:")
+            print(f"   Total Paid: ${total_paid}")
+            print(f"   Total Due:  ${active_plan.total_amount}")
+            print(f"   Remaining:  ${active_plan.total_amount - total_paid}")
+
+            # Check if complete
+            if total_paid >= active_plan.total_amount - Decimal("0.01"):
+                print(f"\n🎉 Plan is COMPLETE! Archiving...")
+
+                archived = ArchivedPaymentPlan(
+                    user_id=active_plan.user_id,
+                    frequency=active_plan.frequency,
+                    start_date=active_plan.start_date,
+                    end_date=active_plan.end_date,
+                    total_amount=active_plan.total_amount,
+                    installment_amount=active_plan.installment_amount,
+                    status="Completed",
+                    completed_on=datetime.now(timezone.utc)
+                )
+                db.session.add(archived)
+                db.session.delete(active_plan)
+                db.session.commit()
+
+                print(f"✅ Plan archived successfully!")
+
+                # Update financial status
+                update_financial_status(user.id)
+                print(f"✅ Financial status updated")
 
             # Clear caches
             invalidate_payment_cache()
