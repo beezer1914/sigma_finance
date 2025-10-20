@@ -9,7 +9,7 @@ from sigma_finance.models import Payment, User, PaymentPlan
 from sigma_finance.extensions import db
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 def add_manual_payment():
@@ -67,19 +67,22 @@ def add_manual_payment():
         # Notes
         notes = input("\n  Notes (optional): ").strip() or "Manual entry - missed webhook"
 
-        # Check for payment plan
+        # Check for payment plan (check both "active" and "Active" for compatibility)
         plan_id = None
         if payment_type == "installment":
-            active_plan = PaymentPlan.query.filter_by(
-                user_id=user.id,
-                status="active"
+            active_plan = PaymentPlan.query.filter(
+                PaymentPlan.user_id == user.id,
+                PaymentPlan.status.in_(["active", "Active"])
             ).first()
 
             if active_plan:
                 print(f"\n  Found active payment plan (ID: {active_plan.id})")
+                print(f"  Total: ${active_plan.total_amount}, Installment: ${active_plan.installment_amount}")
                 link_to_plan = input("  Link this payment to the plan? (y/n, default y): ").strip().lower()
                 if link_to_plan != 'n':
                     plan_id = active_plan.id
+            else:
+                print(f"\n  No active payment plan found for this user")
 
         # Confirm
         print("\n" + "="*60)
@@ -107,7 +110,7 @@ def add_manual_payment():
                 method=method,
                 payment_type=payment_type,
                 notes=notes,
-                date=datetime.utcnow(),
+                date=datetime.now(timezone.utc),
                 plan_id=plan_id
             )
 

@@ -9,7 +9,7 @@ from sigma_finance.models import Payment, User, PaymentPlan
 from sigma_finance.extensions import db
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 # ============================================================
@@ -48,12 +48,12 @@ def add_payment():
             print(f"❌ ERROR: Invalid amount '{AMOUNT}': {e}")
             return False
 
-        # Find active plan if needed
+        # Find active plan if needed (check both "active" and "Active")
         plan_id = None
         if PAYMENT_TYPE == "installment" and LINK_TO_ACTIVE_PLAN:
-            active_plan = PaymentPlan.query.filter_by(
-                user_id=user.id,
-                status="active"
+            active_plan = PaymentPlan.query.filter(
+                PaymentPlan.user_id == user.id,
+                PaymentPlan.status.in_(["active", "Active"])
             ).first()
             if active_plan:
                 plan_id = active_plan.id
@@ -67,7 +67,7 @@ def add_payment():
                 method=PAYMENT_METHOD,
                 payment_type=PAYMENT_TYPE,
                 notes=NOTES,
-                date=datetime.utcnow(),
+                date=datetime.now(timezone.utc),
                 plan_id=plan_id
             )
 
