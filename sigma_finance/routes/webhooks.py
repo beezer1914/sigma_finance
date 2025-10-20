@@ -21,7 +21,7 @@ def stripe_webhook():
     - Timestamp validation
     - Comprehensive error handling
     """
-    print("✅ Webhook received")
+    current_app.logger.info("✅ Webhook received")
 
     payload = request.get_data(as_text=False)
     sig_header = request.headers.get("Stripe-Signature")
@@ -30,7 +30,7 @@ def stripe_webhook():
     webhook_secret = current_app.config.get("STRIPE_WEBHOOK_SECRET")
 
     if not webhook_secret:
-        print("❌ STRIPE_WEBHOOK_SECRET not configured!")
+        current_app.logger.error("❌ STRIPE_WEBHOOK_SECRET not configured!")
         return "Webhook secret not configured", 500
 
     try:
@@ -40,24 +40,24 @@ def stripe_webhook():
             webhook_secret
         )
     except ValueError as e:
-        print(f"❌ Invalid payload: {e}")
+        current_app.logger.error(f"❌ Invalid payload: {e}")
         return "Invalid payload", 400
     except stripe.error.SignatureVerificationError as e:
-        print(f"❌ Invalid signature: {e}")
-        print(f"   Signature header present: {bool(sig_header)}")
-        print(f"   Webhook secret configured: {bool(webhook_secret)}")
+        current_app.logger.error(f"❌ Invalid signature: {e}")
+        current_app.logger.error(f"   Signature header present: {bool(sig_header)}")
+        current_app.logger.error(f"   Webhook secret configured: {bool(webhook_secret)}")
         return "Invalid signature", 400
 
-    print(f"📦 Event type: {event['type']}")
+    current_app.logger.info(f"📦 Event type: {event['type']}")
     event_id = event.get('id')
 
-    # SECURITY CHECK 2: Verify event timestamp (reject events older than 5 minutes)
+    # SECURITY CHECK 2: Verify event timestamp (reject events older than 1 hour)
     event_timestamp = event.get('created')
     if event_timestamp:
         event_time = datetime.fromtimestamp(event_timestamp)
         time_diff = datetime.utcnow() - event_time
-        if time_diff > timedelta(minutes=5):
-            print(f"⚠️ Event too old: {time_diff.total_seconds()}s")
+        if time_diff > timedelta(hours=1):
+            current_app.logger.warning(f"⚠️ Event too old: {time_diff.total_seconds()}s")
             return "Event timestamp too old", 400
 
     # SECURITY CHECK 3: Check for duplicate events using event_id (idempotency)
@@ -65,7 +65,7 @@ def stripe_webhook():
         existing_event = WebhookEvent.query.filter_by(event_id=event_id).first()
 
         if existing_event and existing_event.processed:
-            print(f"⚠️ Duplicate webhook detected: {event_id}")
+            current_app.logger.warning(f"⚠️ Duplicate webhook detected: {event_id}")
             return "Event already processed", 200  # Return 200 to prevent Stripe retries
 
     # Audit log for all events
@@ -79,9 +79,9 @@ def stripe_webhook():
         )
         db.session.add(audit)
         db.session.commit()
-        print("📝 Webhook event logged")
+        current_app.logger.info("📝 Webhook event logged")
     except Exception as e:
-        print(f"⚠️ Audit log error: {e}")
+        current_app.logger.error(f"⚠️ Audit log error: {e}")
         db.session.rollback()
         return "Failed to log event", 500
 
@@ -93,20 +93,20 @@ def stripe_webhook():
         plan_id = metadata.get("plan_id")
         amount_total = session.get("amount_total")
 
-        print(f"📧 Email: {email}")
-        print(f"🧾 Metadata: {metadata}")
-        print(f"📌 Plan ID: {plan_id}")
-        print(f"💰 Amount: ${amount_total / 100 if amount_total else 0}")
+        current_app.logger.info(f"📧 Email: {email}")
+        current_app.logger.info(f"🧾 Metadata: {metadata}")
+        current_app.logger.info(f"📌 Plan ID: {plan_id}")
+        current_app.logger.info(f"💰 Amount: ${amount_total / 100 if amount_total else 0}")
 
         # VALIDATION: Check required fields
         if not email:
-            print("❌ Missing customer email in session")
+            current_app.logger.error("❌ Missing customer email in session")
             audit.notes = "Missing customer email"
             db.session.commit()
             return "Missing customer email", 400
 
         if not amount_total or amount_total <= 0:
-            print("❌ Invalid payment amount")
+            current_app.logger.error("❌ Invalid payment amount")
             audit.notes = "Invalid amount"
             db.session.commit()
             return "Invalid amount", 400
@@ -114,7 +114,7 @@ def stripe_webhook():
         # Find user
         user = User.query.filter_by(email=email).first()
         if not user:
-            print(f"❌ No matching user found for email: {email}")
+            current_app.logger.error(f"❌ No matching user found for email: {email}")
             audit.notes = f"User not found: {email}"
             db.session.commit()
             return "User not found", 404
@@ -125,9 +125,9 @@ def stripe_webhook():
             Payment.amount == Decimal(amount_total) / 100,
             Payment.date >= datetime.utcnow() - timedelta(minutes=5)
         ).first()
-        
+
         if recent_payment:
-            print(f"⚠️ Duplicate payment detected for user {user.id}")
+            current_app.logger.warning(f"⚠️ Duplicate payment detected for user {user.id}")
             audit.processed = True
             audit.notes = f"Duplicate payment prevented (existing payment ID: {recent_payment.id})"
             db.session.commit()
@@ -144,13 +144,13 @@ def stripe_webhook():
                 plan_id=int(plan_id) if plan_id else None
             )
             db.session.add(new_payment)
-            
+
             # Mark webhook as processed
             audit.processed = True
             audit.notes = f"Payment created successfully: ID {new_payment.id}"
-            
+
             db.session.commit()
-            print(f"✅ Payment logged to DB: ID {new_payment.id}")
+            current_app.logger.info(f"✅ Payment logged to DB: ID {new_payment.id}")
 
             # Invalidate caches
             invalidate_payment_cache()
@@ -163,13 +163,13 @@ def stripe_webhook():
 
             # Check if payment plan should be archived
             if new_payment.plan_id:
-                print(f"🔄 Checking if plan {new_payment.plan_id} should be archived")
+                current_app.logger.info(f"🔄 Checking if plan {new_payment.plan_id} should be archived")
                 plan = PaymentPlan.query.get(new_payment.plan_id)
                 if plan:
                     archive_plan_if_completed(plan, user.id, silent=True)
 
         except Exception as e:
-            print(f"❌ Payment processing error: {e}")
+            current_app.logger.error(f"❌ Payment processing error: {e}", exc_info=True)
             db.session.rollback()
             audit.notes = f"Processing error: {str(e)}"
             db.session.commit()
@@ -177,19 +177,20 @@ def stripe_webhook():
 
     # Handle other event types (can add more as needed)
     elif event["type"] == "checkout.session.expired":
-        print("⏰ Checkout session expired")
+        current_app.logger.info("⏰ Checkout session expired")
         audit.processed = True
         audit.notes = "Session expired"
         db.session.commit()
-    
+
     elif event["type"] == "payment_intent.payment_failed":
-        print("❌ Payment failed")
+        current_app.logger.warning("❌ Payment failed")
         audit.processed = True
         audit.notes = "Payment failed"
         db.session.commit()
-    
+
     else:
         # Mark other events as processed but don't do anything
+        current_app.logger.info(f"Event type {event['type']} - no action needed")
         audit.processed = True
         audit.notes = f"Event type {event['type']} - no action needed"
         db.session.commit()
