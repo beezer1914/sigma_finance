@@ -50,12 +50,7 @@ def create_app():
     login_manager.login_view = "auth.login"
     Migrate(app, db)
     cache.init_app(app)
-
-    # Initialize rate limiter with proper storage (Redis in production, memory in dev)
-    if app.config.get('RATELIMIT_STORAGE_URL'):
-        limiter.init_app(app, storage_uri=app.config['RATELIMIT_STORAGE_URL'])
-    else:
-        limiter.init_app(app)  # Falls back to in-memory storage for local dev
+    limiter.init_app(app)  # Rate limiter reads RATELIMIT_STORAGE_URL from app.config automatically
 
 
     # Initialize Talisman (Security Headers) - ONLY IN PRODUCTION
