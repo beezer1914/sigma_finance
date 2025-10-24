@@ -29,23 +29,23 @@
 
           {% if user.active %}
           <form action="{{ url_for('treasurer_bp.treasurer_deactivate_member', member_id=user.id) }}" method="post" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Deactivate {{ user.name }}?')">
               Deactivate
             </button>
           </form>
           {% else %}
           <form action="{{ url_for('treasurer_bp.treasurer_activate_member', member_id=user.id) }}" method="post" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="text-green-600 hover:underline" onclick="return confirm('Activate {{ user.name }}?')">
               Activate
             </button>
           </form>
           {% endif %}
 
-          <form action="{{ url_for('treasurer_bp.treasurer_reset_user', user_id=user.id) }}" method="post" class="inline">
-            <button type="submit" class="text-yellow-600 hover:underline" onclick="return confirm('Reset payments for {{ user.name }}?')">
-              Reset Payments
-            </button>
-          </form>
+          <a href="{{ url_for('treasurer_bp.treasurer_confirm_reset_user', user_id=user.id) }}" class="text-yellow-600 hover:underline">
+            Reset Payments
+          </a>
         </td>
       </tr>
       {% endfor %}

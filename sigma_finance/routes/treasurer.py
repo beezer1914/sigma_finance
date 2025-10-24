@@ -105,9 +105,20 @@ def treasurer_manage_members():
     users = User.query.order_by(User.name).all()
     return render_template('treasurer/manage-members.html', users=users)
 
+# 🔁 Confirm Reset Payments
+@treasurer_bp.route("/reset_user/<int:user_id>/confirm", methods=["GET"], endpoint='treasurer_confirm_reset_user')
+def treasurer_confirm_reset_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return render_template("treasurer/confirm_reset.html", user=user)
+
 # 🔁 Reset Payments (Transaction-safe)
 @treasurer_bp.route("/reset_user/<int:user_id>", methods=["POST"], endpoint='treasurer_reset_user')
 def treasurer_reset_user(user_id):
+    # Require confirmation text "DELETE"
+    if request.form.get("confirm") != "DELETE":
+        flash("Confirmation text must be exactly 'DELETE'", "danger")
+        return redirect(url_for("treasurer_bp.treasurer_confirm_reset_user", user_id=user_id))
+
     user = User.query.get_or_404(user_id)
 
     try:

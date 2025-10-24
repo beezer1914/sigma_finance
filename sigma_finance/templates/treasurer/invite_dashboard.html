@@ -1,6 +1,7 @@
 <h2 class="text-xl font-semibold mb-4">📨 Invite Management</h2>
 
 <form action="{{ url_for('treasurer_bp.treasurer_invite_dashboard') }}" method="POST" class="overflow-x-auto">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   <table class="table-auto w-full border-collapse text-sm">
     <thead class="bg-gray-100 text-left">
       <tr>

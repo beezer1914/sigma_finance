@@ -2,6 +2,7 @@ import os
 from flask import current_app, url_for
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from sigma_finance.utils.sanitize import sanitize_for_email
 
 # --- Send Email via SendGrid ---
 def send_email(subject, to_email, plain_text, html_content=None, from_email=None):
@@ -24,24 +25,27 @@ def send_email(subject, to_email, plain_text, html_content=None, from_email=None
     
 
 def send_password_reset_email(user):
+    # Sanitize user input to prevent email header injection
+    safe_name = sanitize_for_email(user.name)
+
     token = user.get_reset_token()
     reset_url = url_for('auth.reset_password', token=token, _external=True)
 
     subject = "Reset Your Sigma Finance Password"
 
-    plain_text = f"""Hi {user.name},
+    plain_text = f"""Hi {safe_name},
 
 You requested a password reset. Click the link below to set a new password:
 {reset_url}
 
-If you didn’t request this, you can safely ignore it.
+If you didn't request this, you can safely ignore it.
 """
 
     html_content = f"""
-        <p>Hi {user.name},</p>
+        <p>Hi {safe_name},</p>
         <p>You requested a password reset. Click below to set a new password:</p>
         <p><a href="{reset_url}" style="color:#4F46E5;">Reset Password</a></p>
-        <p>If you didn’t request this, you can safely ignore it.</p>
+        <p>If you didn't request this, you can safely ignore it.</p>
     """
 
     return send_email(subject, user.email, plain_text, html_content)

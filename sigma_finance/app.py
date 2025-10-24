@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 
 
 from sigma_finance.config import LocalConfig, ProductionConfig, read_render_secret
-from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter, talisman
+from sigma_finance.extensions import db, bcrypt, login_manager, cache, limiter, talisman, csrf
 from sigma_finance.models import User
 
 # Blueprints
@@ -51,6 +51,7 @@ def create_app():
     Migrate(app, db)
     cache.init_app(app)
     limiter.init_app(app)  # Rate limiter reads RATELIMIT_STORAGE_URL from app.config automatically
+    csrf.init_app(app)  # CSRF protection for all forms
 
 
     # Initialize Talisman (Security Headers) - ONLY IN PRODUCTION
