@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6">
+  <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-lg font-medium text-yellow-800">
+          ⚠️ Confirm Destructive Action
+        </h3>
+        <div class="mt-2 text-sm text-yellow-700">
+          <p>You are about to <strong>permanently delete</strong> all payment data for:</p>
+          <p class="mt-2 text-lg font-bold">{{ user.name }} ({{ user.email }})</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h4 class="font-semibold text-gray-900 mb-3">This action will delete:</h4>
+    <ul class="list-disc list-inside space-y-2 text-gray-700">
+      <li>All payment records</li>
+      <li>All active payment plans</li>
+      <li>All archived payment plans</li>
+      <li>Payment history cannot be recovered</li>
+    </ul>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6">
+    <form action="{{ url_for('treasurer_bp.treasurer_reset_user', user_id=user.id) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <label for="confirm_text" class="block text-sm font-medium text-gray-700 mb-2">
+        Type <strong class="text-red-600">DELETE</strong> to confirm:
+      </label>
+      <input
+        type="text"
+        name="confirm"
+        id="confirm_text"
+        required
+        class="mb-4 block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500"
+        placeholder="Type DELETE here"
+      >
+
+      <div class="flex justify-between items-center">
+        <a href="{{ url_for('treasurer_bp.treasurer_manage_members') }}"
+           class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+          Yes, Delete All Payment Data
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

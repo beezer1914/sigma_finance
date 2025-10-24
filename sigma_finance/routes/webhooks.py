@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import stripe
 
-from sigma_finance.extensions import db
+from sigma_finance.extensions import db, csrf
 from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.routes.payments import archive_plan_if_completed
@@ -12,6 +12,7 @@ from sigma_finance.services.stats import invalidate_payment_cache, invalidate_us
 webhook_bp = Blueprint("webhook", __name__)
 
 @webhook_bp.route("/webhook", methods=["POST"])
+@csrf.exempt  # Stripe webhooks don't have CSRF tokens
 def stripe_webhook():
     """
     Secure Stripe webhook handler with enhanced security features:
