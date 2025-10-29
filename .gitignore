@@ -21,3 +21,14 @@ security_audit.py
 
 .claude/settings.local.json
 nul
+database/create_views_sqlite.sql
+.gitignore
+database/create_views.sql
+ARCHITECTURE.md
+database/README.md
+database/setup_views_local.py
+docs/architecture-diagram.md
+docs/diagrams-individual/01-system-architecture.mmd
+docs/diagrams-individual/02-database-erd.mmd
+docs/diagrams-individual/03-authentication-flow.mmd
+docs/diagrams-individual/README.md
