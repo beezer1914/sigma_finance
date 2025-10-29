@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-4">📊 Financial Reports Dashboard</h1>
+            <p class="text-muted">Comprehensive financial reporting for {{ current_user.role|title }}</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Summary Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Dues Summary Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">💰 Dues Summary</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td><strong>Total Members:</strong></td>
+                                <td class="text-end"><span class="badge bg-secondary">{{ dues_summary.total_members }}</span></td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Financial Members:</strong></td>
+                                <td class="text-end"><span class="badge bg-success">{{ dues_summary.financial_members }}</span></td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Not Financial:</strong></td>
+                                <td class="text-end"><span class="badge bg-warning text-dark">{{ dues_summary.not_financial }}</span></td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>This Year Collected:</strong></td>
+                                <td class="text-end text-success fw-bold">${{ "%.2f"|format(dues_summary.total_collected_this_year) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>All Time Collected:</strong></td>
+                                <td class="text-end fw-bold">${{ "%.2f"|format(dues_summary.total_collected_all_time) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Average per Member:</strong></td>
+                                <td class="text-end">${{ "%.2f"|format(dues_summary.average_paid) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('reports.dues_paid_report') }}" class="btn btn-primary">
+                            📋 View Detailed Report
+                        </a>
+                        <a href="{{ url_for('reports.export_dues_paid') }}" class="btn btn-success">
+                            📥 Export to CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Plans Summary Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">📈 Payment Plans</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td><strong>Active Plans:</strong></td>
+                                <td class="text-end"><span class="badge bg-info">{{ plan_summary.total_active_plans }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Committed:</strong></td>
+                                <td class="text-end fw-bold">${{ "%.2f"|format(plan_summary.total_committed) }}</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Amount Paid:</strong></td>
+                                <td class="text-end text-success fw-bold">${{ "%.2f"|format(plan_summary.total_paid_on_plans) }}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Outstanding Balance:</strong></td>
+                                <td class="text-end text-warning fw-bold">${{ "%.2f"|format(plan_summary.total_outstanding) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Average Completion:</strong></td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary">{{ "%.1f"|format(plan_summary.average_completion) }}%</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('reports.payment_plans_report') }}" class="btn btn-info">
+                            📋 View Detailed Report
+                        </a>
+                        <a href="{{ url_for('reports.export_payment_plans') }}" class="btn btn-success">
+                            📥 Export to CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="mb-0">⚡ Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('treasurer_bp.treasurer_dashboard') }}" class="btn btn-secondary me-2">
+                        ← Back to Treasurer Dashboard
+                    </a>
+                    <a href="{{ url_for('reports.dues_paid_report') }}" class="btn btn-outline-primary me-2">
+                        📊 Member Financial Status
+                    </a>
+                    <a href="{{ url_for('reports.payment_plans_report') }}" class="btn btn-outline-info">
+                        📈 Payment Plan Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

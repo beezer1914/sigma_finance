@@ -132,8 +132,75 @@ class WebhookEvent(db.Model):
     received_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     processed = db.Column(db.Boolean, default=False, index=True)
     notes = db.Column(db.String(255))
-    
+
     __table_args__ = (
         db.Index('ix_webhook_type_processed', 'event_type', 'processed'),
     )
-  
+
+
+# ============================================================================
+# DATABASE VIEWS - For Reporting
+# ============================================================================
+# These map to PostgreSQL/SQLite views created in database/create_views*.sql
+# Views are read-only and used for reporting/analytics
+# ============================================================================
+
+class DuesPaidView(db.Model):
+    """
+    Read-only view: Comprehensive dues payment information per member
+
+    Shows:
+    - Total amount paid (all time)
+    - Amount paid in current dues year (Oct 1 - Sep 30)
+    - Payment count and last payment date
+    - Financial status
+
+    Created by: database/create_views.sql (PostgreSQL) or
+                database/create_views_sqlite.sql (SQLite)
+    """
+    __tablename__ = 'dues_paid_view'
+    __table_args__ = {'info': {'is_view': True}}
+
+    user_id = db.Column('user_id', db.Integer, primary_key=True)
+    name = db.Column('name', db.String(100))
+    email = db.Column('email', db.String(120))
+    role = db.Column('role', db.String(20))
+    financial_status = db.Column('financial_status', db.String(20))
+    initiation_date = db.Column('initiation_date', db.Date)
+    total_paid = db.Column('total_paid', db.Numeric(10, 2))
+    payment_count = db.Column('payment_count', db.Integer)
+    last_payment_date = db.Column('last_payment_date', db.DateTime)
+    current_year_paid = db.Column('current_year_paid', db.Numeric(10, 2))
+
+
+class PaymentPlanStatsView(db.Model):
+    """
+    Read-only view: Payment plan statistics and progress tracking
+
+    Shows:
+    - Total amount, installments, and payments made
+    - Amount paid and balance remaining
+    - Percentage complete
+    - Plan status
+
+    Created by: database/create_views.sql (PostgreSQL) or
+                database/create_views_sqlite.sql (SQLite)
+    """
+    __tablename__ = 'payment_plan_stats_view'
+    __table_args__ = {'info': {'is_view': True}}
+
+    plan_id = db.Column('plan_id', db.Integer, primary_key=True)
+    user_id = db.Column('user_id', db.Integer)
+    name = db.Column('name', db.String(100))
+    email = db.Column('email', db.String(120))
+    frequency = db.Column('frequency', db.String(20))
+    start_date = db.Column('start_date', db.Date)
+    end_date = db.Column('end_date', db.Date)
+    total_amount = db.Column('total_amount', db.Numeric(10, 2))
+    installment_amount = db.Column('installment_amount', db.Numeric(10, 2))
+    status = db.Column('status', db.String(20))
+    expected_installments = db.Column('expected_installments', db.Integer)
+    amount_paid = db.Column('amount_paid', db.Numeric(10, 2))
+    payments_made = db.Column('payments_made', db.Integer)
+    balance_remaining = db.Column('balance_remaining', db.Numeric(10, 2))
+    percent_complete = db.Column('percent_complete', db.Numeric(5, 2))

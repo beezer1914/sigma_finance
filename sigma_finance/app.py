@@ -15,6 +15,7 @@ from sigma_finance.routes.payments import payments
 from sigma_finance.routes.treasurer import treasurer_bp
 from sigma_finance.routes.invite import invite_bp
 from sigma_finance.routes.webhooks import webhook_bp
+from sigma_finance.routes.reports import reports_bp
 
 # Logging setup
 logging.basicConfig(
@@ -112,6 +113,7 @@ def create_app():
     app.register_blueprint(treasurer_bp, url_prefix="/treasurer")
     app.register_blueprint(invite_bp, url_prefix="/treasurer/invite")
     app.register_blueprint(webhook_bp)
+    app.register_blueprint(reports_bp, url_prefix="/reports")
 
     # Root route
     @app.route("/")
