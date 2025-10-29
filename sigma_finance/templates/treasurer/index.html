@@ -35,16 +35,16 @@
       </div>
     </a>
 
-    <!-- Budget Snapshot -->
-    <div class="bg-white shadow rounded-lg p-6 flex items-start gap-4">
+    <!-- Financial Reports -->
+    <a href="{{ url_for('reports.reports_dashboard') }}" class="bg-white shadow rounded-lg p-6 hover:shadow-md transition flex items-start gap-4">
       <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M9 17V9m4 8v-5m4 5v-3"/>
       </svg>
       <div>
-        <h2 class="text-xl font-semibold text-purple-600 mb-1">Budget Overview</h2>
-        <p class="text-gray-600">Coming soon: automated budget and cash flow summary.</p>
+        <h2 class="text-xl font-semibold text-purple-600 mb-1">📊 Financial Reports</h2>
+        <p class="text-gray-600">View comprehensive dues and payment plan reports. Export to CSV.</p>
       </div>
-    </div>
+    </a>
 
     {% if current_user.role == 'treasurer' %}
     <!-- Admin Tools -->
