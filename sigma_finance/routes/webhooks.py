@@ -94,10 +94,16 @@ def stripe_webhook():
         plan_id = metadata.get("plan_id")
         amount_total = session.get("amount_total")
 
+        # Use base_amount if available (original amount before Stripe fees)
+        # Otherwise fall back to amount_total for backwards compatibility
+        base_amount = metadata.get("base_amount")
+        amount_to_record = Decimal(base_amount) if base_amount else (Decimal(amount_total) / 100)
+
         current_app.logger.info(f"📧 Email: {email}")
         current_app.logger.info(f"🧾 Metadata: {metadata}")
         current_app.logger.info(f"📌 Plan ID: {plan_id}")
-        current_app.logger.info(f"💰 Amount: ${amount_total / 100 if amount_total else 0}")
+        current_app.logger.info(f"💰 Amount charged: ${amount_total / 100 if amount_total else 0}")
+        current_app.logger.info(f"💵 Base amount (recorded): ${amount_to_record}")
 
         # VALIDATION: Check required fields
         if not email:
@@ -123,7 +129,7 @@ def stripe_webhook():
         # SECURITY CHECK 4: Prevent duplicate payments (same user, same amount, within 5 minutes)
         recent_payment = Payment.query.filter(
             Payment.user_id == user.id,
-            Payment.amount == Decimal(amount_total) / 100,
+            Payment.amount == amount_to_record,
             Payment.date >= datetime.utcnow() - timedelta(minutes=5)
         ).first()
 
@@ -138,7 +144,7 @@ def stripe_webhook():
         try:
             new_payment = Payment(
                 user_id=user.id,
-                amount=Decimal(amount_total) / 100,
+                amount=amount_to_record,  # Record the base amount (before Stripe fees)
                 method="stripe",
                 payment_type=metadata.get("payment_type", "one_time"),
                 notes=metadata.get("notes", ""),

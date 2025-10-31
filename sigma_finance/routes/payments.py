@@ -16,6 +16,28 @@ from sigma_finance.extensions import limiter
 
 payments = Blueprint("payments", __name__)
 
+# 💳 Calculate amount including Stripe processing fees
+def calculate_total_with_fees(amount):
+    """
+    Calculate the total amount to charge the user to cover Stripe's processing fees.
+    Stripe charges 2.9% + $0.30 per transaction.
+
+    Formula: total = (amount + 0.30) / (1 - 0.029)
+    This ensures that after Stripe takes their fee, you receive the original amount.
+
+    Args:
+        amount (Decimal): The base amount before fees
+
+    Returns:
+        Decimal: The total amount including fees, rounded to 2 decimal places
+    """
+    amount_decimal = Decimal(str(amount))
+    fee_percentage = Decimal("0.029")  # 2.9%
+    fixed_fee = Decimal("0.30")
+
+    total_with_fees = (amount_decimal + fixed_fee) / (Decimal("1") - fee_percentage)
+    return total_with_fees.quantize(Decimal("0.01"))
+
 # 🔁 Archive completed plans
 def archive_plan_if_completed(plan, user_id, silent=False):
     db.session.expire_all()
@@ -83,6 +105,10 @@ def pay():
         payment_type_value = payment_kind.data if payment_kind else payment_type
 
         if form.method.data == "card":
+            # Calculate total including Stripe processing fees
+            base_amount = form.amount.data
+            total_with_fees = calculate_total_with_fees(base_amount)
+
             session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 line_items=[{
@@ -91,7 +117,7 @@ def pay():
                         "product_data": {
                             "name": "Installment Payment" if payment_type_value == "installment" else "One-Time Dues"
                         },
-                        "unit_amount": int(form.amount.data * 100),
+                        "unit_amount": int(total_with_fees * 100),
                     },
                     "quantity": 1,
                 }],
@@ -102,7 +128,8 @@ def pay():
                     "user_id": current_user.id,
                     "payment_type": payment_type_value,
                     "notes": form.notes.data or "",
-                    "plan_id": str(plan.id) if plan else ""
+                    "plan_id": str(plan.id) if plan else "",
+                    "base_amount": str(base_amount)  # Store original amount for reference
                 }
             )
             return redirect(session.url, code=303)
