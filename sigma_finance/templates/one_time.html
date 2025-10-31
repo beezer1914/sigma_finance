@@ -20,12 +20,12 @@
     {% for error in form.method.errors %}
       <div class="text-danger small mt-1">{{ error }}</div>
     {% endfor %}
-    <div id="fee-info" class="mt-2 p-2 bg-light border rounded" style="display: none;">
-      <small class="text-muted">
-        <strong>Processing fee breakdown:</strong><br>
+    <div id="fee-info" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md" style="display: none;">
+      <small class="text-gray-700 text-sm">
+        <strong class="text-blue-900">Processing fee breakdown:</strong><br>
         Base amount: $<span id="base-amount">0.00</span><br>
         Processing fee (2.9% + $0.30): $<span id="processing-fee">0.00</span><br>
-        <strong>Total charged: $<span id="total-amount">0.00</span></strong>
+        <strong class="text-blue-900">Total charged: $<span id="total-amount">0.00</span></strong>
       </small>
     </div>
   </div>
@@ -51,7 +51,7 @@
   </button>
 </form>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
   // Calculate total amount including Stripe processing fees
   function calculateTotalWithFees(baseAmount) {
     const feePercentage = 0.029; // 2.9%
