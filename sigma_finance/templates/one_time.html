@@ -20,6 +20,14 @@
     {% for error in form.method.errors %}
       <div class="text-danger small mt-1">{{ error }}</div>
     {% endfor %}
+    <div id="fee-info" class="mt-2 p-2 bg-light border rounded" style="display: none;">
+      <small class="text-muted">
+        <strong>Processing fee breakdown:</strong><br>
+        Base amount: $<span id="base-amount">0.00</span><br>
+        Processing fee (2.9% + $0.30): $<span id="processing-fee">0.00</span><br>
+        <strong>Total charged: $<span id="total-amount">0.00</span></strong>
+      </small>
+    </div>
   </div>
 
   <div class="mb-3">
@@ -42,4 +50,47 @@
     {{ form.submit.label.text }}
   </button>
 </form>
+
+<script>
+  // Calculate total amount including Stripe processing fees
+  function calculateTotalWithFees(baseAmount) {
+    const feePercentage = 0.029; // 2.9%
+    const fixedFee = 0.30;
+    const totalWithFees = (baseAmount + fixedFee) / (1 - feePercentage);
+    return totalWithFees;
+  }
+
+  function updateFeeDisplay() {
+    const methodSelect = document.getElementById('method');
+    const amountInput = document.getElementById('amount');
+    const feeInfo = document.getElementById('fee-info');
+
+    const isCard = methodSelect.value === 'card';
+    const amount = parseFloat(amountInput.value) || 0;
+
+    if (isCard && amount > 0) {
+      const totalWithFees = calculateTotalWithFees(amount);
+      const processingFee = totalWithFees - amount;
+
+      document.getElementById('base-amount').textContent = amount.toFixed(2);
+      document.getElementById('processing-fee').textContent = processingFee.toFixed(2);
+      document.getElementById('total-amount').textContent = totalWithFees.toFixed(2);
+      feeInfo.style.display = 'block';
+    } else {
+      feeInfo.style.display = 'none';
+    }
+  }
+
+  // Listen for changes
+  document.addEventListener('DOMContentLoaded', function() {
+    const methodSelect = document.getElementById('method');
+    const amountInput = document.getElementById('amount');
+
+    methodSelect.addEventListener('change', updateFeeDisplay);
+    amountInput.addEventListener('input', updateFeeDisplay);
+
+    // Initial check
+    updateFeeDisplay();
+  });
+</script>
 {% endblock %}
