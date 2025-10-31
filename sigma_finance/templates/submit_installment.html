@@ -57,8 +57,15 @@
     const amountInput = document.getElementById('amount');
     const feeInfo = document.getElementById('fee-info');
 
+    if (!methodSelect || !amountInput || !feeInfo) {
+      console.error('Fee display elements not found');
+      return;
+    }
+
     const isCard = methodSelect.value === 'card';
     const amount = parseFloat(amountInput.value) || 0;
+
+    console.log('Fee display update:', { method: methodSelect.value, amount, isCard });
 
     if (isCard && amount > 0) {
       const totalWithFees = calculateTotalWithFees(amount);
@@ -68,21 +75,29 @@
       document.getElementById('processing-fee').textContent = processingFee.toFixed(2);
       document.getElementById('total-amount').textContent = totalWithFees.toFixed(2);
       feeInfo.style.display = 'block';
+      console.log('Fee breakdown shown:', { base: amount, fee: processingFee, total: totalWithFees });
     } else {
       feeInfo.style.display = 'none';
+      console.log('Fee breakdown hidden');
     }
   }
 
   // Listen for changes
   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Fee calculator script loaded');
     const methodSelect = document.getElementById('method');
     const amountInput = document.getElementById('amount');
 
-    methodSelect.addEventListener('change', updateFeeDisplay);
-    amountInput.addEventListener('input', updateFeeDisplay);
+    if (methodSelect && amountInput) {
+      methodSelect.addEventListener('change', updateFeeDisplay);
+      amountInput.addEventListener('input', updateFeeDisplay);
+      console.log('Event listeners attached');
 
-    // Initial check
-    updateFeeDisplay();
+      // Initial check
+      updateFeeDisplay();
+    } else {
+      console.error('Form elements not found');
+    }
   });
 </script>
 {% endblock %}
