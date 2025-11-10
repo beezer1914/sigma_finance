@@ -6,7 +6,13 @@ This module provides functions for generating financial reports
 from database views. All functions are cached for performance.
 """
 
-from sigma_finance.models import DuesPaidView, PaymentPlanStatsView
+from sigma_finance.models import (
+    DuesPaidView,
+    PaymentPlanStatsView,
+    DonationStatsView,
+    DonationMonthlySummary,
+    TopDonorsView
+)
 from sigma_finance.extensions import db, cache
 from io import BytesIO
 from datetime import datetime
@@ -249,6 +255,208 @@ def invalidate_reports_cache():
     - Creating or updating payments
     - Creating or updating payment plans
     - Changing user financial status
+    - Creating or updating donations
     """
     cache.delete_memoized(get_dues_paid_report)
     cache.delete_memoized(get_payment_plan_stats)
+    cache.delete_memoized(get_donation_stats)
+    cache.delete_memoized(get_donation_monthly_summary)
+    cache.delete_memoized(get_top_donors)
+
+
+# ============================================================================
+# DONATION REPORT FUNCTIONS
+# ============================================================================
+
+@cache.memoize(timeout=600)  # Cache for 10 minutes
+def get_donation_stats():
+    """
+    Get comprehensive donation statistics
+
+    Returns:
+        list: List of DonationStatsView objects with donation information
+
+    Cached: 10 minutes
+    """
+    return DonationStatsView.query.all()
+
+
+@cache.memoize(timeout=600)  # Cache for 10 minutes
+def get_donation_monthly_summary():
+    """
+    Get monthly donation summary statistics
+
+    Returns:
+        list: List of DonationMonthlySummary objects with monthly totals
+
+    Cached: 10 minutes
+    """
+    return DonationMonthlySummary.query.all()
+
+
+@cache.memoize(timeout=600)  # Cache for 10 minutes
+def get_top_donors(limit=None):
+    """
+    Get top donors list
+
+    Args:
+        limit: Optional limit for number of donors to return
+
+    Returns:
+        list: List of TopDonorsView objects sorted by total donated
+
+    Cached: 10 minutes
+    """
+    query = TopDonorsView.query
+    if limit:
+        query = query.limit(limit)
+    return query.all()
+
+
+def get_donation_summary_stats():
+    """
+    Calculate summary statistics for donations
+
+    Returns:
+        dict: Summary statistics including:
+            - total_donations: Total number of donations
+            - unique_donors: Number of unique donors
+            - total_amount: Total amount donated
+            - avg_donation: Average donation amount
+            - member_donations: Number from members
+            - non_member_donations: Number from non-members
+            - member_amount: Total from members
+            - non_member_amount: Total from non-members
+    """
+    data = get_donation_stats()
+
+    if not data:
+        return {
+            'total_donations': 0,
+            'unique_donors': 0,
+            'total_amount': 0,
+            'avg_donation': 0,
+            'member_donations': 0,
+            'non_member_donations': 0,
+            'member_amount': 0,
+            'non_member_amount': 0
+        }
+
+    unique_emails = set(d.donor_email for d in data)
+    member_donations = [d for d in data if d.donor_type == 'Member']
+    non_member_donations = [d for d in data if d.donor_type == 'Non-Member']
+
+    return {
+        'total_donations': len(data),
+        'unique_donors': len(unique_emails),
+        'total_amount': float(sum(d.amount for d in data)),
+        'avg_donation': float(sum(d.amount for d in data) / len(data)),
+        'member_donations': len(member_donations),
+        'non_member_donations': len(non_member_donations),
+        'member_amount': float(sum(d.amount for d in member_donations)),
+        'non_member_amount': float(sum(d.amount for d in non_member_donations))
+    }
+
+
+def export_donations_to_csv():
+    """
+    Export donation statistics to CSV format
+
+    Returns:
+        str: UTF-8 encoded CSV data with BOM for Excel compatibility
+
+    CSV Columns:
+        Donor Name, Email, Amount, Date, Method, Tier, Donor Type,
+        Member Name (if applicable), Anonymous
+    """
+    import csv
+    from io import StringIO
+
+    data = get_donation_stats()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    # Headers
+    writer.writerow([
+        'Donor Name',
+        'Email',
+        'Amount',
+        'Date',
+        'Method',
+        'Donation Tier',
+        'Donor Type',
+        'Member Name',
+        'Anonymous',
+        'Notes'
+    ])
+
+    # Data rows
+    for donation in data:
+        writer.writerow([
+            donation.donor_name if not donation.anonymous else 'Anonymous',
+            donation.donor_email if not donation.anonymous else 'Hidden',
+            f"${float(donation.amount):.2f}",
+            donation.date.strftime('%Y-%m-%d %I:%M %p') if donation.date else '',
+            donation.method or '',
+            donation.donation_tier or '',
+            donation.donor_type or '',
+            donation.member_name or '',
+            'Yes' if donation.anonymous else 'No',
+            donation.notes or ''
+        ])
+
+    # Convert to string with UTF-8 BOM for Excel
+    csv_string = output.getvalue()
+    return '\ufeff' + csv_string  # Add BOM
+
+
+def export_top_donors_to_csv():
+    """
+    Export top donors report to CSV format
+
+    Returns:
+        str: UTF-8 encoded CSV data with BOM for Excel compatibility
+
+    CSV Columns:
+        Donor Name, Email, Total Donated, Donation Count, Avg Donation,
+        Donor Level, First Donation, Last Donation
+    """
+    import csv
+    from io import StringIO
+
+    data = get_top_donors()
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    # Headers
+    writer.writerow([
+        'Donor Name',
+        'Email',
+        'Total Donated',
+        'Donation Count',
+        'Avg Donation',
+        'Donor Level',
+        'Member Name',
+        'First Donation',
+        'Last Donation'
+    ])
+
+    # Data rows
+    for donor in data:
+        writer.writerow([
+            donor.donor_name if not donor.has_anonymous_donations else f"{donor.donor_name} *",
+            donor.donor_email,
+            f"${float(donor.total_donated):.2f}",
+            donor.donation_count,
+            f"${float(donor.avg_donation):.2f}",
+            donor.donor_level or '',
+            donor.member_name or '',
+            donor.first_donation_date.strftime('%Y-%m-%d') if donor.first_donation_date else '',
+            donor.last_donation_date.strftime('%Y-%m-%d') if donor.last_donation_date else ''
+        ])
+
+    # Convert to string with UTF-8 BOM for Excel
+    csv_string = output.getvalue()
+    return '\ufeff' + csv_string  # Add BOM

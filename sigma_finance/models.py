@@ -225,3 +225,91 @@ class PaymentPlanStatsView(db.Model):
     payments_made = db.Column('payments_made', db.Integer)
     balance_remaining = db.Column('balance_remaining', db.Numeric(10, 2))
     percent_complete = db.Column('percent_complete', db.Numeric(5, 2))
+
+
+class DonationStatsView(db.Model):
+    """
+    Read-only view: Donation statistics with member linkage
+
+    Shows:
+    - Donor information and amounts
+    - Member linkage if donor is a member
+    - Donation tier classification
+    - Date grouping for reporting
+
+    Created by: database/create_donation_view.sql (PostgreSQL)
+    """
+    __tablename__ = 'donation_stats_view'
+    __table_args__ = {'info': {'is_view': True}}
+
+    donation_id = db.Column('donation_id', db.Integer, primary_key=True)
+    donor_name = db.Column('donor_name', db.String(100))
+    donor_email = db.Column('donor_email', db.String(120))
+    amount = db.Column('amount', db.Numeric(10, 2))
+    date = db.Column('date', db.DateTime)
+    method = db.Column('method', db.String(50))
+    anonymous = db.Column('anonymous', db.Boolean)
+    notes = db.Column('notes', db.String(255))
+    user_id = db.Column('user_id', db.Integer)
+    member_name = db.Column('member_name', db.String(100))
+    member_role = db.Column('member_role', db.String(20))
+    financial_status = db.Column('financial_status', db.String(20))
+    donation_tier = db.Column('donation_tier', db.String(50))
+    donor_type = db.Column('donor_type', db.String(20))
+
+
+class DonationMonthlySummary(db.Model):
+    """
+    Read-only view: Monthly donation summary statistics
+
+    Shows:
+    - Monthly totals and averages
+    - Unique donor counts
+    - Member vs non-member breakdown
+
+    Created by: database/create_donation_view.sql (PostgreSQL)
+    """
+    __tablename__ = 'donation_monthly_summary'
+    __table_args__ = {'info': {'is_view': True}}
+
+    month = db.Column('month', db.DateTime, primary_key=True)
+    year = db.Column('year', db.Integer)
+    month_num = db.Column('month_num', db.Integer)
+    month_name = db.Column('month_name', db.String(50))
+    donation_count = db.Column('donation_count', db.Integer)
+    unique_donors = db.Column('unique_donors', db.Integer)
+    total_amount = db.Column('total_amount', db.Numeric(10, 2))
+    avg_amount = db.Column('avg_amount', db.Numeric(10, 2))
+    min_amount = db.Column('min_amount', db.Numeric(10, 2))
+    max_amount = db.Column('max_amount', db.Numeric(10, 2))
+    member_donations = db.Column('member_donations', db.Integer)
+    non_member_donations = db.Column('non_member_donations', db.Integer)
+    member_amount = db.Column('member_amount', db.Numeric(10, 2))
+    non_member_amount = db.Column('non_member_amount', db.Numeric(10, 2))
+
+
+class TopDonorsView(db.Model):
+    """
+    Read-only view: Top donors aggregated statistics
+
+    Shows:
+    - Total donated per donor
+    - Donation frequency
+    - Donor level classification
+
+    Created by: database/create_donation_view.sql (PostgreSQL)
+    """
+    __tablename__ = 'top_donors_view'
+    __table_args__ = {'info': {'is_view': True}}
+
+    donor_email = db.Column('donor_email', db.String(120), primary_key=True)
+    donor_name = db.Column('donor_name', db.String(100))
+    user_id = db.Column('user_id', db.Integer)
+    member_name = db.Column('member_name', db.String(100))
+    donation_count = db.Column('donation_count', db.Integer)
+    total_donated = db.Column('total_donated', db.Numeric(10, 2))
+    avg_donation = db.Column('avg_donation', db.Numeric(10, 2))
+    first_donation_date = db.Column('first_donation_date', db.DateTime)
+    last_donation_date = db.Column('last_donation_date', db.DateTime)
+    has_anonymous_donations = db.Column('has_anonymous_donations', db.Boolean)
+    donor_level = db.Column('donor_level', db.String(20))
