@@ -4,7 +4,7 @@ from decimal import Decimal
 import stripe
 
 from sigma_finance.extensions import db, csrf
-from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan
+from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan, Donation
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.routes.payments import archive_plan_if_completed
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
@@ -197,6 +197,170 @@ def stripe_webhook():
 
     else:
         # Mark other events as processed but don't do anything
+        current_app.logger.info(f"Event type {event['type']} - no action needed")
+        audit.processed = True
+        audit.notes = f"Event type {event['type']} - no action needed"
+        db.session.commit()
+
+    return "", 200
+
+
+@webhook_bp.route("/webhook/donations", methods=["POST"])
+@csrf.exempt  # Stripe webhooks don't have CSRF tokens
+def stripe_donation_webhook():
+    """
+    Secure Stripe webhook handler for DONATIONS (separate Stripe account).
+    This handles webhooks from the donation payment link.
+
+    Security features:
+    - Signature verification with donation webhook secret
+    - Idempotency (duplicate prevention)
+    - Event ID tracking
+    - Timestamp validation
+    """
+    current_app.logger.info("✅ Donation webhook received")
+
+    payload = request.get_data(as_text=False)
+    sig_header = request.headers.get("Stripe-Signature")
+
+    # SECURITY CHECK 1: Verify Stripe signature with DONATION webhook secret
+    webhook_secret = current_app.config.get("DONATION_STRIPE_WEBHOOK_SECRET")
+
+    if not webhook_secret:
+        current_app.logger.error("❌ DONATION_STRIPE_WEBHOOK_SECRET not configured!")
+        return "Webhook secret not configured", 500
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig_header,
+            webhook_secret
+        )
+    except ValueError as e:
+        current_app.logger.error(f"❌ Invalid payload: {e}")
+        return "Invalid payload", 400
+    except stripe.error.SignatureVerificationError as e:
+        current_app.logger.error(f"❌ Invalid signature: {e}")
+        return "Invalid signature", 400
+
+    current_app.logger.info(f"📦 Donation event type: {event['type']}")
+    event_id = event.get('id')
+
+    # SECURITY CHECK 2: Verify event timestamp (reject events older than 1 hour)
+    event_timestamp = event.get('created')
+    if event_timestamp:
+        event_time = datetime.fromtimestamp(event_timestamp)
+        time_diff = datetime.utcnow() - event_time
+        if time_diff > timedelta(hours=1):
+            current_app.logger.warning(f"⚠️ Event too old: {time_diff.total_seconds()}s")
+            return "Event timestamp too old", 400
+
+    # SECURITY CHECK 3: Check for duplicate events (idempotency)
+    if event_id:
+        existing_event = WebhookEvent.query.filter_by(event_id=event_id).first()
+
+        if existing_event and existing_event.processed:
+            current_app.logger.warning(f"⚠️ Duplicate donation webhook: {event_id}")
+            return "Event already processed", 200
+
+    # Audit log for all donation events
+    try:
+        audit = WebhookEvent(
+            event_id=event_id,
+            event_type=event["type"],
+            payload=payload.decode("utf-8"),
+            received_at=datetime.utcnow(),
+            processed=False,
+            source="donations"  # Mark as donation webhook
+        )
+        db.session.add(audit)
+        db.session.commit()
+        current_app.logger.info("📝 Donation webhook event logged")
+    except Exception as e:
+        current_app.logger.error(f"⚠️ Audit log error: {e}")
+        db.session.rollback()
+        return "Failed to log event", 500
+
+    # Handle completed checkout session for donations
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        customer_details = session.get("customer_details", {})
+        donor_email = customer_details.get("email")
+        donor_name = customer_details.get("name", "Anonymous")
+        amount_total = session.get("amount_total")
+        session_id = session.get("id")
+
+        current_app.logger.info(f"📧 Donor email: {donor_email}")
+        current_app.logger.info(f"👤 Donor name: {donor_name}")
+        current_app.logger.info(f"💰 Donation amount: ${amount_total / 100 if amount_total else 0}")
+
+        # VALIDATION: Check required fields
+        if not donor_email:
+            current_app.logger.error("❌ Missing donor email in session")
+            audit.notes = "Missing donor email"
+            db.session.commit()
+            return "Missing donor email", 400
+
+        if not amount_total or amount_total <= 0:
+            current_app.logger.error("❌ Invalid donation amount")
+            audit.notes = "Invalid amount"
+            db.session.commit()
+            return "Invalid amount", 400
+
+        # Check if donor is a registered user (optional)
+        user = User.query.filter_by(email=donor_email).first()
+        user_id = user.id if user else None
+
+        # SECURITY CHECK 4: Prevent duplicate donations (same email, same amount, within 5 minutes)
+        recent_donation = Donation.query.filter(
+            Donation.donor_email == donor_email,
+            Donation.amount == Decimal(amount_total) / 100,
+            Donation.date >= datetime.utcnow() - timedelta(minutes=5)
+        ).first()
+
+        if recent_donation:
+            current_app.logger.warning(f"⚠️ Duplicate donation detected from {donor_email}")
+            audit.processed = True
+            audit.notes = f"Duplicate donation prevented (existing donation ID: {recent_donation.id})"
+            db.session.commit()
+            return "Duplicate donation", 200
+
+        # Create donation record
+        try:
+            new_donation = Donation(
+                donor_name=donor_name,
+                donor_email=donor_email,
+                amount=Decimal(amount_total) / 100,
+                method="stripe",
+                stripe_payment_id=session_id,
+                anonymous=False,  # Can be updated manually if needed
+                notes="Donation via Stripe payment link",
+                user_id=user_id
+            )
+            db.session.add(new_donation)
+
+            # Mark webhook as processed
+            audit.processed = True
+            audit.notes = f"Donation created successfully: ID {new_donation.id}"
+
+            db.session.commit()
+            current_app.logger.info(f"✅ Donation logged to DB: ID {new_donation.id}")
+
+        except Exception as e:
+            current_app.logger.error(f"❌ Donation processing error: {e}", exc_info=True)
+            db.session.rollback()
+            audit.notes = f"Processing error: {str(e)}"
+            db.session.commit()
+            return "Donation processing failed", 500
+
+    # Handle other event types
+    elif event["type"] == "checkout.session.expired":
+        current_app.logger.info("⏰ Donation checkout session expired")
+        audit.processed = True
+        audit.notes = "Session expired"
+        db.session.commit()
+
+    else:
         current_app.logger.info(f"Event type {event['type']} - no action needed")
         audit.processed = True
         audit.notes = f"Event type {event['type']} - no action needed"
