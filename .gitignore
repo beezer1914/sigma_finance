@@ -32,3 +32,4 @@ docs/diagrams-individual/01-system-architecture.mmd
 docs/diagrams-individual/02-database-erd.mmd
 docs/diagrams-individual/03-authentication-flow.mmd
 docs/diagrams-individual/README.md
+database/create_donation_view.sql

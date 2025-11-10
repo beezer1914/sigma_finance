@@ -15,7 +15,13 @@ from sigma_finance.services.reports import (
     get_dues_summary_stats,
     get_payment_plan_summary,
     export_dues_paid_to_csv,
-    export_payment_plans_to_csv
+    export_payment_plans_to_csv,
+    get_donation_stats,
+    get_donation_monthly_summary,
+    get_top_donors,
+    get_donation_summary_stats,
+    export_donations_to_csv,
+    export_top_donors_to_csv
 )
 from datetime import datetime
 
@@ -160,3 +166,92 @@ def export_payment_plans():
     except Exception as e:
         flash(f"Error exporting report: {str(e)}", "danger")
         return redirect(url_for('reports.payment_plans_report'))
+
+
+@reports_bp.route('/donations')
+@login_required
+@role_required('admin', 'treasurer', 'president', 'vice_president')
+def donations_report():
+    """
+    Donation statistics report
+
+    Shows detailed donation information:
+    - Individual donations with tier classification
+    - Monthly summary trends
+    - Top donors list
+    - Member vs non-member breakdown
+
+    Access: admin, treasurer, president, vice_president
+    """
+    try:
+        donations = get_donation_stats()
+        summary = get_donation_summary_stats()
+        monthly = get_donation_monthly_summary()
+        top_donors = get_top_donors(limit=10)
+
+        return render_template(
+            'reports/donations.html',
+            donations=donations,
+            summary=summary,
+            monthly=monthly,
+            top_donors=top_donors
+        )
+    except Exception as e:
+        flash(f"Error loading donations report: {str(e)}", "danger")
+        return redirect(url_for('reports.reports_dashboard'))
+
+
+@reports_bp.route('/export/donations')
+@login_required
+@role_required('admin', 'treasurer', 'president', 'vice_president')
+def export_donations():
+    """
+    Export donations report as CSV
+
+    Downloads a CSV file with all donation information
+    Filename includes current date
+
+    Access: admin, treasurer, president, vice_president
+    """
+    try:
+        csv_data = export_donations_to_csv()
+
+        # Create response with CSV data
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = (
+            f'attachment; filename=donations_{datetime.now().strftime("%Y%m%d")}.csv'
+        )
+
+        return response
+    except Exception as e:
+        flash(f"Error exporting report: {str(e)}", "danger")
+        return redirect(url_for('reports.donations_report'))
+
+
+@reports_bp.route('/export/top-donors')
+@login_required
+@role_required('admin', 'treasurer', 'president', 'vice_president')
+def export_top_donors():
+    """
+    Export top donors report as CSV
+
+    Downloads a CSV file with aggregated donor statistics
+    Filename includes current date
+
+    Access: admin, treasurer, president, vice_president
+    """
+    try:
+        csv_data = export_top_donors_to_csv()
+
+        # Create response with CSV data
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        response.headers['Content-Disposition'] = (
+            f'attachment; filename=top_donors_{datetime.now().strftime("%Y%m%d")}.csv'
+        )
+
+        return response
+    except Exception as e:
+        flash(f"Error exporting report: {str(e)}", "danger")
+        return redirect(url_for('reports.donations_report'))
