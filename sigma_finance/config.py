@@ -26,10 +26,14 @@ class BaseConfig:
     SENDGRID_API_KEY = read_render_secret("SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL = read_render_secret("DEFAULT_FROM_EMAIL") or "no-reply@sds1914.com"
 
-    # Stripe
+    # Stripe (Dues Account)
     STRIPE_SECRET_KEY = read_render_secret("STRIPE_SECRET_KEY")
     STRIPE_PUBLISHABLE_KEY = read_render_secret("STRIPE_PUBLISHABLE_KEY")
     STRIPE_WEBHOOK_SECRET = read_render_secret("STRIPE_WEBHOOK_SECRET")
+
+    # Stripe (Donations Account - Separate)
+    DONATION_STRIPE_WEBHOOK_SECRET = read_render_secret("DONATION_STRIPE_WEBHOOK_SECRET")
+    DONATION_STRIPE_LINK = read_render_secret("DONATION_STRIPE_LINK") or "https://donate.stripe.com/aFa9ATdI3gL572jcuMbQY00"
     
     # Cache Configuration - ADD THIS SECTION
     CACHE_TYPE = "SimpleCache"  # Default for local development
@@ -41,7 +45,11 @@ class LocalConfig(BaseConfig):
     STRIPE_SECRET_KEY = ""
     STRIPE_PUBLISHABLE_KEY = ""
     STRIPE_WEBHOOK_SECRET = ""
-    
+
+    # Donations (local dev defaults)
+    DONATION_STRIPE_WEBHOOK_SECRET = ""
+    DONATION_STRIPE_LINK = "https://donate.stripe.com/test_4gM5kDauR0AZbLvcW79sk00"
+
     # Use simple in-memory cache for local dev
     CACHE_TYPE = "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 300
@@ -77,6 +85,7 @@ class ProductionConfig(BaseConfig):
             'STRIPE_SECRET_KEY': cls.STRIPE_SECRET_KEY,
             'STRIPE_PUBLISHABLE_KEY': cls.STRIPE_PUBLISHABLE_KEY,
             'STRIPE_WEBHOOK_SECRET': cls.STRIPE_WEBHOOK_SECRET,
+            'DONATION_STRIPE_WEBHOOK_SECRET': cls.DONATION_STRIPE_WEBHOOK_SECRET,
             'SENDGRID_API_KEY': cls.SENDGRID_API_KEY,
             'DEFAULT_FROM_EMAIL': cls.DEFAULT_FROM_EMAIL
         }

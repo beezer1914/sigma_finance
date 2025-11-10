@@ -19,14 +19,17 @@
 
         {% if current_user.role in ['treasurer', 'admin'] %}
           <li><a href="{{ url_for('treasurer_bp.treasurer_dashboard') }}" class="hover:underline hover:text-yellow-200 transition">Treasurer Dashboard</a></li>
+          <li><a href="{{ url_for('donations.view_donations') }}" class="hover:underline hover:text-yellow-200 transition">Donations</a></li>
         {% endif %}
 
         <li><a href="{{ url_for('payments.pay') }}" class="hover:underline hover:text-gray-200 transition">Submit Payment</a></li>
         <li><a href="{{ url_for('payments.plan') }}" class="hover:underline hover:text-gray-200 transition">Enroll in Payment Plan</a></li>
+        <li><a href="{{ url_for('donations.donate') }}" class="hover:underline hover:text-green-200 transition">Donate</a></li>
         <li><a href="{{ url_for('auth.logout') }}" class="hover:underline hover:text-gray-200 transition">Logout</a></li>
       {% else %}
         <li><a href="{{ url_for('auth.login') }}" class="hover:underline hover:text-gray-200 transition">Login</a></li>
         <li><a href="{{ url_for('auth.register') }}" class="hover:underline hover:text-gray-200 transition">Register</a></li>
+        <li><a href="{{ url_for('donations.donate') }}" class="hover:underline hover:text-green-200 transition">Donate</a></li>
       {% endif %}
     </ul>
   </nav>

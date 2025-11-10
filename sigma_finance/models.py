@@ -124,6 +124,26 @@ class InviteCode(db.Model):
     redeemer = db.relationship("User", foreign_keys=[used_by], backref="invite_used")
 
 
+class Donation(db.Model):
+    """
+    Donations are separate from dues payments and use a separate Stripe account.
+    Donations can be made by members or non-members (public).
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    donor_name = db.Column(db.String(100), nullable=False)
+    donor_email = db.Column(db.String(120), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    method = db.Column(db.String(50), default="stripe")  # 'stripe', 'check', 'cash', etc.
+    stripe_payment_id = db.Column(db.String(128), unique=True, nullable=True)  # Stripe session/payment ID
+    anonymous = db.Column(db.Boolean, default=False)  # Hide donor name in public displays
+    notes = db.Column(db.String(255))
+
+    # Optional: Link to a user if the donor is a member
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    user = db.relationship("User", backref="donations")
+
+
 class WebhookEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_id = db.Column(db.String(128), unique=True, index=True)  # Stripe event ID
@@ -132,6 +152,7 @@ class WebhookEvent(db.Model):
     received_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     processed = db.Column(db.Boolean, default=False, index=True)
     notes = db.Column(db.String(255))
+    source = db.Column(db.String(20), default="dues")  # 'dues' or 'donations' to track which Stripe account
 
     __table_args__ = (
         db.Index('ix_webhook_type_processed', 'event_type', 'processed'),
