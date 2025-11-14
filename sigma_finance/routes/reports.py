@@ -190,12 +190,20 @@ def donations_report():
         monthly = get_donation_monthly_summary()
         top_donors = get_top_donors(limit=10)
 
+        # Calculate totals for the partial template
+        total_amount = sum(d.amount for d in donations) if donations else 0
+        total_count = len(donations)
+        avg_amount = float(total_amount) / total_count if total_count > 0 else 0
+
         return render_template(
             'reports/donations.html',
             donations=donations,
             summary=summary,
             monthly=monthly,
-            top_donors=top_donors
+            top_donors=top_donors,
+            total_amount=total_amount,
+            total_count=total_count,
+            avg_amount=avg_amount
         )
     except Exception as e:
         flash(f"Error loading donations report: {str(e)}", "danger")
