@@ -2,8 +2,35 @@
 
 {% block title %}Donations Report{% endblock %}
 
+{% block extra_head %}
+<!-- HTMX for dynamic content updates -->
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<!-- Alpine.js for simple client-side interactivity -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+<style>
+    /* Show loading indicator only when HTMX is fetching */
+    .htmx-indicator {
+        opacity: 0;
+        transition: opacity 300ms ease-in;
+    }
+    .htmx-request .htmx-indicator {
+        opacity: 1;
+    }
+
+    /* Smooth transitions for Alpine.js */
+    [x-cloak] { display: none !important; }
+
+    /* Smooth fade during HTMX swaps */
+    .htmx-swapping {
+        opacity: 0;
+        transition: opacity 200ms ease-out;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
+<div class="container my-5" x-data="{ showFilters: false }">
     <div class="row mb-4">
         <div class="col-md-12">
             <h1 class="display-4">💝 Donations Report</h1>
@@ -52,15 +79,98 @@
         </div>
     </div>
 
-    <!-- Export Buttons -->
+    <!-- Filter Bar - HTMX Enhanced -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <a href="{{ url_for('reports.export_donations') }}" class="btn btn-success me-2">
-                📥 Export All Donations
-            </a>
-            <a href="{{ url_for('reports.export_top_donors') }}" class="btn btn-primary">
-                📥 Export Top Donors
-            </a>
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🔍 Filters</h5>
+                    <button class="btn btn-sm btn-outline-secondary"
+                            @click="showFilters = !showFilters"
+                            x-text="showFilters ? 'Hide Filters' : 'Show Filters'">
+                        Show Filters
+                    </button>
+                </div>
+
+                <div class="card-body" x-show="showFilters" x-transition x-cloak>
+                    <form id="donation-filters"
+                          hx-get="{{ url_for('reports.donations_filtered') }}"
+                          hx-target="#donations-table-container"
+                          hx-trigger="change, keyup delay:500ms from:#search-input"
+                          hx-indicator="#loading-indicator"
+                          hx-swap="innerHTML swap:300ms">
+
+                        <div class="row g-3">
+                            <!-- Date Range -->
+                            <div class="col-md-3">
+                                <label class="form-label">From Date</label>
+                                <input type="date" name="date_from" class="form-control"
+                                       placeholder="Start date">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">To Date</label>
+                                <input type="date" name="date_to" class="form-control"
+                                       placeholder="End date">
+                            </div>
+
+                            <!-- Donor Type -->
+                            <div class="col-md-3">
+                                <label class="form-label">Donor Type</label>
+                                <select name="donor_type" class="form-select">
+                                    <option value="all">All Donors</option>
+                                    <option value="member">Members Only</option>
+                                    <option value="non-member">Non-Members Only</option>
+                                </select>
+                            </div>
+
+                            <!-- Search -->
+                            <div class="col-md-3">
+                                <label class="form-label">Search Donor</label>
+                                <input type="text"
+                                       id="search-input"
+                                       name="search"
+                                       class="form-control"
+                                       placeholder="Name or email..."
+                                       autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-sm"
+                                        onclick="document.getElementById('donation-filters').reset(); htmx.trigger('#donation-filters', 'change')">
+                                    🔄 Clear Filters
+                                </button>
+                                <small class="text-muted ms-3">
+                                    <em>Filters update automatically as you type or select</em>
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Buttons with Loading Indicator -->
+    <div class="row mb-4">
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{{ url_for('reports.export_donations') }}" class="btn btn-success me-2">
+                    📥 Export All Donations
+                </a>
+                <a href="{{ url_for('reports.export_top_donors') }}" class="btn btn-primary">
+                    📥 Export Top Donors
+                </a>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="loading-indicator" class="htmx-indicator">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -169,81 +279,19 @@
     </div>
     {% endif %}
 
-    <!-- All Donations Table -->
-    {% if donations %}
+    <!-- All Donations Table - HTMX Enhanced Dynamic Updates -->
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h3 class="mb-0">📋 All Donations</h3>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Donor</th>
-                                <th class="text-end">Amount</th>
-                                <th>Tier</th>
-                                <th>Type</th>
-                                <th>Method</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for donation in donations[:50] %}
-                            <tr>
-                                <td>{{ donation.date.strftime('%Y-%m-%d') if donation.date else 'N/A' }}</td>
-                                <td>
-                                    {% if donation.anonymous %}
-                                        <em class="text-muted">Anonymous</em>
-                                    {% else %}
-                                        {{ donation.donor_name }}
-                                        {% if donation.member_name %}
-                                            <span class="badge bg-success ms-1">Member</span>
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td class="text-end fw-bold">${{ "%.2f"|format(donation.amount|float) }}</td>
-                                <td>
-                                    <span class="badge
-                                        {% if 'Premium' in donation.donation_tier %}bg-danger
-                                        {% elif 'Major' in donation.donation_tier %}bg-warning
-                                        {% elif 'Large' in donation.donation_tier %}bg-info
-                                        {% elif 'Medium' in donation.donation_tier %}bg-primary
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ donation.donation_tier }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge {% if donation.donor_type == 'Member' %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ donation.donor_type }}
-                                    </span>
-                                </td>
-                                <td class="text-muted">{{ donation.method|title }}</td>
-                                <td class="text-muted"><small>{{ donation.notes or '—' }}</small></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% if donations|length > 50 %}
-                    <p class="text-muted text-center mt-3">
-                        <small>Showing first 50 of {{ donations|length }} donations. Export to CSV for full list.</small>
-                    </p>
-                    {% endif %}
+
+                <div id="donations-table-container" class="card-body">
+                    {% include 'reports/partials/donations_table.html' %}
                 </div>
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="alert alert-info">
-                <h4 class="alert-heading">No Donations Yet</h4>
-                <p>No donation records found. Once donations are received, they will appear here.</p>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
