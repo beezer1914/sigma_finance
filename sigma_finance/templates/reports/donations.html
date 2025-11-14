@@ -96,27 +96,45 @@
                     <form id="donation-filters"
                           hx-get="{{ url_for('reports.donations_filtered') }}"
                           hx-target="#donations-table-container"
-                          hx-trigger="change, keyup delay:500ms from:#search-input"
+                          hx-trigger="input delay:500ms, change"
                           hx-indicator="#loading-indicator"
-                          hx-swap="innerHTML swap:300ms">
+                          hx-swap="innerHTML transition:true">
 
                         <div class="row g-3">
                             <!-- Date Range -->
                             <div class="col-md-3">
                                 <label class="form-label">From Date</label>
-                                <input type="date" name="date_from" class="form-control"
-                                       placeholder="Start date">
+                                <input type="date"
+                                       name="date_from"
+                                       class="form-control"
+                                       hx-get="{{ url_for('reports.donations_filtered') }}"
+                                       hx-trigger="change"
+                                       hx-include="#donation-filters"
+                                       hx-target="#donations-table-container"
+                                       hx-indicator="#loading-indicator">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">To Date</label>
-                                <input type="date" name="date_to" class="form-control"
-                                       placeholder="End date">
+                                <input type="date"
+                                       name="date_to"
+                                       class="form-control"
+                                       hx-get="{{ url_for('reports.donations_filtered') }}"
+                                       hx-trigger="change"
+                                       hx-include="#donation-filters"
+                                       hx-target="#donations-table-container"
+                                       hx-indicator="#loading-indicator">
                             </div>
 
                             <!-- Donor Type -->
                             <div class="col-md-3">
                                 <label class="form-label">Donor Type</label>
-                                <select name="donor_type" class="form-select">
+                                <select name="donor_type"
+                                        class="form-select"
+                                        hx-get="{{ url_for('reports.donations_filtered') }}"
+                                        hx-trigger="change"
+                                        hx-include="#donation-filters"
+                                        hx-target="#donations-table-container"
+                                        hx-indicator="#loading-indicator">
                                     <option value="all">All Donors</option>
                                     <option value="member">Members Only</option>
                                     <option value="non-member">Non-Members Only</option>
@@ -131,7 +149,12 @@
                                        name="search"
                                        class="form-control"
                                        placeholder="Name or email..."
-                                       autocomplete="off">
+                                       autocomplete="off"
+                                       hx-get="{{ url_for('reports.donations_filtered') }}"
+                                       hx-trigger="keyup changed delay:500ms"
+                                       hx-include="#donation-filters"
+                                       hx-target="#donations-table-container"
+                                       hx-indicator="#loading-indicator">
                             </div>
                         </div>
 
