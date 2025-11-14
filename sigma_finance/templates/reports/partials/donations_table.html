@@ -1,0 +1,70 @@
+<!-- HTMX Partial: Donations Table Fragment -->
+<table class="table table-sm table-hover">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Donor</th>
+            <th class="text-end">Amount</th>
+            <th>Tier</th>
+            <th>Type</th>
+            <th>Method</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if donations %}
+            {% for donation in donations %}
+            <tr class="htmx-swapping:opacity-50 transition-opacity">
+                <td>{{ donation.date.strftime('%Y-%m-%d') if donation.date else 'N/A' }}</td>
+                <td>
+                    {% if donation.anonymous %}
+                        <em class="text-muted">Anonymous</em>
+                    {% else %}
+                        {{ donation.donor_name }}
+                        {% if donation.member_name %}
+                            <span class="badge bg-success ms-1">Member</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td class="text-end fw-bold">${{ "%.2f"|format(donation.amount|float) }}</td>
+                <td>
+                    <span class="badge
+                        {% if 'Premium' in donation.donation_tier %}bg-danger
+                        {% elif 'Major' in donation.donation_tier %}bg-warning
+                        {% elif 'Large' in donation.donation_tier %}bg-info
+                        {% elif 'Medium' in donation.donation_tier %}bg-primary
+                        {% else %}bg-secondary{% endif %}">
+                        {{ donation.donation_tier }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge {% if donation.donor_type == 'Member' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ donation.donor_type }}
+                    </span>
+                </td>
+                <td class="text-muted">{{ donation.method|title }}</td>
+                <td class="text-muted"><small>{{ donation.notes or '—' }}</small></td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    <em>No donations match your filters</em>
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+{% if donations and donations|length >= 50 %}
+<p class="text-muted text-center mt-3">
+    <small>Showing first {{ donations|length }} donations. Refine filters or export to CSV for full list.</small>
+</p>
+{% elif donations %}
+<p class="text-muted text-center mt-3">
+    <small>Showing {{ donations|length }} donation{{ 's' if donations|length != 1 else '' }}.
+        Total: ${{ "%.2f"|format(total_amount|float) }} |
+        Average: ${{ "%.2f"|format(avg_amount|float) }}
+    </small>
+</p>
+{% endif %}
