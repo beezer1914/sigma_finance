@@ -60,7 +60,8 @@ ORDER BY d.date DESC;
 DROP VIEW IF EXISTS donation_monthly_summary;
 CREATE VIEW donation_monthly_summary AS
 SELECT
-    strftime('%Y-%m', d.date) as month,
+    -- Return first day of month as a proper datetime string that SQLAlchemy can parse
+    date(strftime('%Y-%m', d.date) || '-01') as month,
     CAST(strftime('%Y', d.date) AS INTEGER) as year,
     CAST(strftime('%m', d.date) AS INTEGER) as month_num,
     strftime('%Y-%m', d.date) as month_name,  -- SQLite doesn't have TO_CHAR, we'll format in Python
