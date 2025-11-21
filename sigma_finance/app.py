@@ -17,6 +17,7 @@ from sigma_finance.routes.invite import invite_bp
 from sigma_finance.routes.webhooks import webhook_bp
 from sigma_finance.routes.reports import reports_bp
 from sigma_finance.routes.donations import donations_bp
+from sigma_finance.routes.api import api_bp
 
 # Logging setup
 logging.basicConfig(
@@ -116,6 +117,10 @@ def create_app():
     app.register_blueprint(webhook_bp)
     app.register_blueprint(reports_bp, url_prefix="/reports")
     app.register_blueprint(donations_bp)
+    app.register_blueprint(api_bp, url_prefix="/api")
+
+    # Exempt API routes from CSRF protection (they use JSON and session auth)
+    csrf.exempt(api_bp)
 
     # Root route
     @app.route("/")
