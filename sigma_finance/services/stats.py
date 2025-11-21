@@ -192,33 +192,63 @@ def get_payment_trends(months=6):
     """
     Get monthly payment totals for the last N months
     Useful for charts/graphs
+    Works with both PostgreSQL and SQLite
     """
     from dateutil.relativedelta import relativedelta
-    
+    from flask import current_app
+
     end_date = datetime.utcnow()
     start_date = end_date - relativedelta(months=months)
-    
-    # Group by month and sum amounts
-    results = (
-        db.session.query(
-            func.date_trunc('month', Payment.date).label('month'),
-            func.sum(Payment.amount).label('total'),
-            func.count(Payment.id).label('count')
+
+    # Check if we're using SQLite or PostgreSQL
+    db_url = current_app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    is_sqlite = 'sqlite' in db_url.lower()
+
+    if is_sqlite:
+        # SQLite: use strftime for date grouping
+        month_expr = func.strftime('%Y-%m', Payment.date)
+        results = (
+            db.session.query(
+                month_expr.label('month'),
+                func.sum(Payment.amount).label('total'),
+                func.count(Payment.id).label('count')
+            )
+            .filter(Payment.date >= start_date)
+            .group_by(month_expr)
+            .order_by(month_expr)
+            .all()
         )
-        .filter(Payment.date >= start_date)
-        .group_by(func.date_trunc('month', Payment.date))
-        .order_by(func.date_trunc('month', Payment.date))
-        .all()
-    )
-    
-    return [
-        {
-            'month': r.month.strftime('%Y-%m'),
-            'total': float(r.total),
-            'count': r.count
-        }
-        for r in results
-    ]
+
+        return [
+            {
+                'month': r.month,  # Already a string in YYYY-MM format
+                'total': float(r.total),
+                'count': r.count
+            }
+            for r in results
+        ]
+    else:
+        # PostgreSQL: use date_trunc for date grouping
+        results = (
+            db.session.query(
+                func.date_trunc('month', Payment.date).label('month'),
+                func.sum(Payment.amount).label('total'),
+                func.count(Payment.id).label('count')
+            )
+            .filter(Payment.date >= start_date)
+            .group_by(func.date_trunc('month', Payment.date))
+            .order_by(func.date_trunc('month', Payment.date))
+            .all()
+        )
+
+        return [
+            {
+                'month': r.month.strftime('%Y-%m'),
+                'total': float(r.total),
+                'count': r.count
+            }
+            for r in results
+        ]
 
 
 # 🎯 Get member financial summary - CACHED

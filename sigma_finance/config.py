@@ -22,6 +22,9 @@ class BaseConfig:
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-key-change-this")
     DEBUG = getenv_bool("FLASK_DEBUG")
 
+    # Frontend URL for Stripe redirects (override in subclasses)
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
     # Email
     SENDGRID_API_KEY = read_render_secret("SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL = read_render_secret("DEFAULT_FROM_EMAIL") or "no-reply@sds1914.com"
@@ -42,9 +45,17 @@ class BaseConfig:
 class LocalConfig(BaseConfig):
     DEBUG = True
     TESTING = True
-    STRIPE_SECRET_KEY = ""
-    STRIPE_PUBLISHABLE_KEY = ""
-    STRIPE_WEBHOOK_SECRET = ""
+
+    # Frontend URL for redirects (Vite dev server)
+    FRONTEND_URL = "http://localhost:5173"
+
+    # SendGrid (set SENDGRID_API_KEY in your environment for local dev)
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+
+    # Stripe test keys (set these in your environment for local dev)
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+    STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
     # Donations (local dev defaults)
     DONATION_STRIPE_WEBHOOK_SECRET = ""
@@ -57,6 +68,9 @@ class LocalConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     DEBUG = False
     TESTING = False
+
+    # Frontend URL (same domain in production since React is served by Flask)
+    FRONTEND_URL = read_render_secret("FRONTEND_URL") or "https://sds1914.com"
 
     # Use Redis for production caching - ADD THIS SECTION
     CACHE_TYPE = "RedisCache"
