@@ -1,6 +1,6 @@
 import logging
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_migrate import Migrate
 
 
@@ -94,7 +94,7 @@ def create_app():
                     'https://hooks.stripe.com'
                 ]
             },
-            content_security_policy_nonce_in=['script-src'],
+            # Note: Removed nonce requirement - React bundles don't use CSP nonces
             feature_policy={
                 'geolocation': "'none'",
                 'camera': "'none'",
@@ -122,10 +122,41 @@ def create_app():
     # Exempt API routes from CSRF protection (they use JSON and session auth)
     csrf.exempt(api_bp)
 
-    # Root route
-    @app.route("/")
-    def index():
+    # React frontend serving (production)
+    react_build_path = os.path.join(os.path.dirname(__file__), '..', 'react-frontend', 'dist')
+
+    @app.route('/')
+    def serve_react_index():
+        """Serve React app index or fallback to Jinja template"""
+        if not app.debug and os.path.exists(os.path.join(react_build_path, 'index.html')):
+            return send_from_directory(react_build_path, 'index.html')
         return render_template("home.html")
+
+    @app.route('/assets/<path:filename>')
+    def serve_react_assets(filename):
+        """Serve React static assets (JS, CSS, etc.)"""
+        return send_from_directory(os.path.join(react_build_path, 'assets'), filename)
+
+    # Client-side routes - serve React index.html for SPA routing
+    react_routes = [
+        '/login', '/register', '/dashboard', '/payments', '/profile',
+        '/treasurer', '/treasurer/payments', '/members', '/reports',
+        '/donations', '/invites', '/payment/success', '/payment/cancel'
+    ]
+
+    @app.route('/<path:path>')
+    def serve_react_catchall(path):
+        """Handle React Router client-side routes"""
+        # Check if it's a known React route
+        if f'/{path}' in react_routes or path.startswith(('login', 'register', 'dashboard', 'payments', 'profile', 'treasurer', 'members', 'reports', 'donations', 'invites', 'payment')):
+            if not app.debug and os.path.exists(os.path.join(react_build_path, 'index.html')):
+                return send_from_directory(react_build_path, 'index.html')
+        # Check if it's a static file in dist
+        file_path = os.path.join(react_build_path, path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(react_build_path, path)
+        # Fallback to 404
+        return render_template("home.html"), 404
 
     # User loader
     @login_manager.user_loader
