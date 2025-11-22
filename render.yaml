@@ -2,11 +2,11 @@ services:
   - type: web
     name: sigma-finance
     env: python
-    rootDir: sigma_finance
     envVars:
       - key: FLASK_APP
         value: sigma_finance.app
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      cd react-frontend && npm install && npm run build && cd .. && pip install -r requirements.txt
     releaseCommand: |
       echo "----> running Postgres migrations…" &&
       flask db upgrade

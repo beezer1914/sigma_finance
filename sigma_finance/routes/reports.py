@@ -6,9 +6,10 @@ Provides access to financial reports for authorized users
 (treasurer, president, vice_president, admin)
 """
 
-from flask import Blueprint, render_template, make_response, flash, redirect, url_for
+from flask import Blueprint, render_template, make_response, flash, redirect, url_for, request
 from flask_login import login_required, current_user
 from sigma_finance.utils.decorators import role_required
+from sigma_finance.extensions import db
 from sigma_finance.services.reports import (
     get_dues_paid_report,
     get_payment_plan_stats,
@@ -189,12 +190,20 @@ def donations_report():
         monthly = get_donation_monthly_summary()
         top_donors = get_top_donors(limit=10)
 
+        # Calculate totals for the partial template
+        total_amount = sum(d.amount for d in donations) if donations else 0
+        total_count = len(donations)
+        avg_amount = float(total_amount) / total_count if total_count > 0 else 0
+
         return render_template(
             'reports/donations.html',
             donations=donations,
             summary=summary,
             monthly=monthly,
-            top_donors=top_donors
+            top_donors=top_donors,
+            total_amount=total_amount,
+            total_count=total_count,
+            avg_amount=avg_amount
         )
     except Exception as e:
         flash(f"Error loading donations report: {str(e)}", "danger")
@@ -255,3 +264,85 @@ def export_top_donors():
     except Exception as e:
         flash(f"Error exporting report: {str(e)}", "danger")
         return redirect(url_for('reports.donations_report'))
+
+
+@reports_bp.route('/donations/filtered')
+@login_required
+@role_required('admin', 'treasurer', 'president', 'vice_president')
+def donations_filtered():
+    """
+    HTMX endpoint - Returns filtered donation data as HTML fragment
+
+    Query params:
+    - date_from: Start date filter (YYYY-MM-DD)
+    - date_to: End date filter (YYYY-MM-DD)
+    - search: Search term for donor name/email
+    - donor_type: 'member', 'non-member', or 'all'
+    - limit: Number of donations to show (default 50)
+
+    Returns:
+        HTML fragment with filtered donations table
+
+    Access: admin, treasurer, president, vice_president
+    """
+    try:
+        from sigma_finance.models import DonationStatsView
+
+        # Get filter parameters
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        search = request.args.get('search', '').strip()
+        donor_type = request.args.get('donor_type', 'all')
+        limit = int(request.args.get('limit', 50))
+
+        # Build query with filters
+        query = DonationStatsView.query
+
+        if date_from:
+            try:
+                from_date = datetime.strptime(date_from, '%Y-%m-%d')
+                query = query.filter(DonationStatsView.date >= from_date)
+            except ValueError:
+                pass  # Invalid date format, skip filter
+
+        if date_to:
+            try:
+                to_date = datetime.strptime(date_to, '%Y-%m-%d')
+                query = query.filter(DonationStatsView.date <= to_date)
+            except ValueError:
+                pass  # Invalid date format, skip filter
+
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                db.or_(
+                    DonationStatsView.donor_name.ilike(search_pattern),
+                    DonationStatsView.donor_email.ilike(search_pattern)
+                )
+            )
+
+        if donor_type != 'all':
+            if donor_type == 'member':
+                query = query.filter(DonationStatsView.donor_type == 'Member')
+            elif donor_type == 'non-member':
+                query = query.filter(DonationStatsView.donor_type == 'Non-Member')
+
+        # Execute query
+        donations = query.order_by(DonationStatsView.date.desc()).limit(limit).all()
+
+        # Calculate summary for filtered results
+        total_amount = sum(d.amount for d in donations) if donations else 0
+        total_count = len(donations)
+        avg_amount = float(total_amount) / total_count if total_count > 0 else 0
+
+        # Return HTML fragment
+        return render_template(
+            'reports/partials/donations_table.html',
+            donations=donations,
+            total_amount=total_amount,
+            total_count=total_count,
+            avg_amount=avg_amount
+        )
+    except Exception as e:
+        # Return error message as HTML
+        return f'<div class="alert alert-danger">Error filtering donations: {str(e)}</div>', 500

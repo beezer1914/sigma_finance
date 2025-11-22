@@ -61,6 +61,18 @@ class User(db.Model, UserMixin):
             return True
         return self.financial_status == "financial"
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'role': self.role,
+            'status': self.status,
+            'financial_status': self.financial_status,
+            'active': self.active,
+            'initiation_date': self.initiation_date.isoformat() if self.initiation_date else None,
+        }
+
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,6 +86,21 @@ class Payment(db.Model):
     # 🔗 Relationship to payment plan
     plan_id = db.Column(db.Integer, db.ForeignKey("payment_plan.id"), nullable=True)
     plan = db.relationship("PaymentPlan", backref="payments")
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'amount': str(self.amount),
+            'date': self.date.isoformat(),
+            'method': self.method,
+            'payment_type': self.payment_type,
+            'notes': self.notes,
+            'plan_id': self.plan_id,
+            'plan': self.plan.to_dict() if self.plan else None,
+            'user': self.user.to_dict() if self.user else None
+        }
+
 
 
 class PaymentPlan(db.Model):
@@ -94,6 +121,22 @@ class PaymentPlan(db.Model):
     def is_complete(self):
         """Check if the payment plan is complete"""
         return self.total_paid() >= self.total_amount
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'frequency': self.frequency,
+            'start_date': self.start_date.isoformat(),
+            'end_date': self.end_date.isoformat(),
+            'total_amount': str(self.total_amount),
+            'installment_amount': str(self.installment_amount),
+            'status': self.status,
+            'expected_installments': self.expected_installments,
+            'enforce_installments': self.enforce_installments,
+            'total_paid': str(self.total_paid()),
+            'is_complete': self.is_complete()
+        }
 
 class ArchivedPaymentPlan(db.Model):
     __tablename__ = "archived_payment_plan"
