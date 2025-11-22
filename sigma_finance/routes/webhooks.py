@@ -55,7 +55,7 @@ def stripe_webhook():
     # SECURITY CHECK 2: Verify event timestamp (reject events older than 1 hour)
     event_timestamp = event.get('created')
     if event_timestamp:
-        event_time = datetime.fromtimestamp(event_timestamp)
+        event_time = datetime.utcfromtimestamp(event_timestamp)
         time_diff = datetime.utcnow() - event_time
         if time_diff > timedelta(hours=1):
             current_app.logger.warning(f"⚠️ Event too old: {time_diff.total_seconds()}s")
@@ -126,19 +126,8 @@ def stripe_webhook():
             db.session.commit()
             return "User not found", 404
 
-        # SECURITY CHECK 4: Prevent duplicate payments (same user, same amount, within 5 minutes)
-        recent_payment = Payment.query.filter(
-            Payment.user_id == user.id,
-            Payment.amount == amount_to_record,
-            Payment.date >= datetime.utcnow() - timedelta(minutes=5)
-        ).first()
-
-        if recent_payment:
-            current_app.logger.warning(f"⚠️ Duplicate payment detected for user {user.id}")
-            audit.processed = True
-            audit.notes = f"Duplicate payment prevented (existing payment ID: {recent_payment.id})"
-            db.session.commit()
-            return "Duplicate payment", 200
+        # Note: Duplicate prevention is handled by event_id check above (SECURITY CHECK 3)
+        # Each Stripe webhook event has a unique event_id, so we don't need amount+time checks
 
         # Create payment record
         try:
@@ -249,7 +238,7 @@ def stripe_donation_webhook():
     # SECURITY CHECK 2: Verify event timestamp (reject events older than 1 hour)
     event_timestamp = event.get('created')
     if event_timestamp:
-        event_time = datetime.fromtimestamp(event_timestamp)
+        event_time = datetime.utcfromtimestamp(event_timestamp)
         time_diff = datetime.utcnow() - event_time
         if time_diff > timedelta(hours=1):
             current_app.logger.warning(f"⚠️ Event too old: {time_diff.total_seconds()}s")
@@ -311,19 +300,8 @@ def stripe_donation_webhook():
         user = User.query.filter_by(email=donor_email).first()
         user_id = user.id if user else None
 
-        # SECURITY CHECK 4: Prevent duplicate donations (same email, same amount, within 5 minutes)
-        recent_donation = Donation.query.filter(
-            Donation.donor_email == donor_email,
-            Donation.amount == Decimal(amount_total) / 100,
-            Donation.date >= datetime.utcnow() - timedelta(minutes=5)
-        ).first()
-
-        if recent_donation:
-            current_app.logger.warning(f"⚠️ Duplicate donation detected from {donor_email}")
-            audit.processed = True
-            audit.notes = f"Duplicate donation prevented (existing donation ID: {recent_donation.id})"
-            db.session.commit()
-            return "Duplicate donation", 200
+        # Note: Duplicate prevention is handled by event_id check above (SECURITY CHECK 3)
+        # Each Stripe webhook event has a unique event_id, so we don't need amount+time checks
 
         # Create donation record
         try:
