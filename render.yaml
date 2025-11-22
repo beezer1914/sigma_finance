@@ -6,8 +6,21 @@ services:
       - key: FLASK_APP
         value: sigma_finance.app
     buildCommand: |
-      cd react-frontend && npm install && npm run build && cd .. && pip install -r requirements.txt
+      echo "----> Building React frontend..." &&
+      cd react-frontend &&
+      npm install &&
+      npm run build &&
+      echo "----> React build output:" &&
+      ls -la dist/ &&
+      cd .. &&
+      echo "----> Installing Python dependencies..." &&
+      pip install -r requirements.txt &&
+      echo "----> Verifying React build exists at runtime path:" &&
+      ls -la react-frontend/dist/
     releaseCommand: |
+      echo "----> PWD: $(pwd)" &&
+      echo "----> Checking React build:" &&
+      ls -la react-frontend/dist/ 2>/dev/null || echo "React dist NOT FOUND!" &&
       echo "----> running Postgres migrations…" &&
       flask db upgrade
-    startCommand: gunicorn sigma_finance.app:app
+    startCommand: gunicorn sigma_finance.wsgi:app
