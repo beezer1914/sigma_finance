@@ -185,6 +185,10 @@ def create_app():
     # Error handler for rate limit exceeded
     @app.errorhandler(429)
     def rate_limit_exceeded(error):
+        # In production, return JSON (Jinja templates use auth.login which isn't registered)
+        if not app.debug:
+            from flask import jsonify
+            return jsonify({"error": "Too many requests", "retry_after": 60}), 429
         return render_template('errors/429.html'), 429
 
     # Debug: Print all routes (only in development)

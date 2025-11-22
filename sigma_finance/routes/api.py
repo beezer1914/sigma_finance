@@ -15,6 +15,7 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 # ============================================================================
 
 @api_bp.route("/health", methods=["GET"])
+@limiter.exempt  # Exempt health check from rate limiting
 def health_check():
     """
     Health check endpoint for monitoring services.
