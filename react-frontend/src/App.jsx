@@ -14,6 +14,7 @@ import Reports from './components/Reports';
 import Donations from './components/Donations';
 import Invites from './components/Invites';
 import Profile from './components/Profile';
+import Donate from './components/Donate';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/donate" element={<Donate />} />
 
         {/* Protected Routes */}
         <Route
