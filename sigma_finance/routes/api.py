@@ -11,6 +11,48 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
 # ============================================================================
+# Health Check Endpoint (No Auth Required)
+# ============================================================================
+
+@api_bp.route("/health", methods=["GET"])
+def health_check():
+    """
+    Health check endpoint for monitoring services.
+    Checks database connectivity and returns service status.
+
+    Returns:
+        JSON with status, database connectivity, and timestamp
+    """
+    import time
+    from datetime import datetime
+
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "checks": {}
+    }
+
+    # Check database connectivity
+    try:
+        start = time.time()
+        db.session.execute(db.text("SELECT 1"))
+        db_latency = round((time.time() - start) * 1000, 2)  # ms
+        health_status["checks"]["database"] = {
+            "status": "up",
+            "latency_ms": db_latency
+        }
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["database"] = {
+            "status": "down",
+            "error": str(e)
+        }
+        return jsonify(health_status), 503
+
+    return jsonify(health_status), 200
+
+
+# ============================================================================
 # Authentication Endpoints
 # ============================================================================
 
