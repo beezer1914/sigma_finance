@@ -129,13 +129,22 @@ def create_app():
         app.register_blueprint(donations_bp)
 
     # React frontend serving (production)
-    react_build_path = os.path.join(os.path.dirname(__file__), '..', 'react-frontend', 'dist')
+    # Use absolute path for reliability across environments
+    react_build_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'react-frontend', 'dist'))
+    print(f"React build path: {react_build_path}")
+    print(f"React build exists: {os.path.exists(react_build_path)}")
+    if os.path.exists(react_build_path):
+        print(f"React build contents: {os.listdir(react_build_path)}")
 
     @app.route('/')
     def serve_react_index():
         """Serve React app index or fallback to Jinja template"""
-        if not app.debug and os.path.exists(os.path.join(react_build_path, 'index.html')):
+        index_path = os.path.join(react_build_path, 'index.html')
+        if not app.debug and os.path.exists(index_path):
             return send_from_directory(react_build_path, 'index.html')
+        # In production without React build, return error (don't use Jinja templates)
+        if not app.debug:
+            return f"React build not found at {react_build_path}. Contents: {os.listdir(os.path.dirname(react_build_path)) if os.path.exists(os.path.dirname(react_build_path)) else 'parent dir not found'}", 500
         return render_template("home.html")
 
     @app.route('/assets/<path:filename>')
@@ -160,8 +169,11 @@ def create_app():
             if os.path.exists(file_path) and os.path.isfile(file_path):
                 return send_from_directory(react_build_path, path)
             # For all other routes, serve React index.html (let React Router handle it)
-            if os.path.exists(os.path.join(react_build_path, 'index.html')):
+            index_path = os.path.join(react_build_path, 'index.html')
+            if os.path.exists(index_path):
                 return send_from_directory(react_build_path, 'index.html')
+            # React build not found
+            return f"React build not found for path: {path}", 404
         # In debug mode, let it fall through to 404 (Jinja blueprints handle routes)
         return render_template("home.html"), 404
 
