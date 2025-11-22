@@ -54,6 +54,24 @@ def health_check():
 
 
 # ============================================================================
+# Public Endpoints (No Auth Required)
+# ============================================================================
+
+@api_bp.route("/donate/link", methods=["GET"])
+def get_donation_link():
+    """
+    Get the public Stripe donation link.
+    No authentication required.
+    """
+    from flask import current_app
+    donation_link = current_app.config.get("DONATION_STRIPE_LINK", "")
+    return jsonify({
+        "success": True,
+        "donation_link": donation_link
+    }), 200
+
+
+# ============================================================================
 # Authentication Endpoints
 # ============================================================================
 
