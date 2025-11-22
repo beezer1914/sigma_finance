@@ -65,6 +65,13 @@ class LocalConfig(BaseConfig):
     CACHE_TYPE = "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 300
 
+class LocalProductionConfig(LocalConfig):
+    """Test production React serving locally (DEBUG=False but local DB/cache)"""
+    DEBUG = False
+    TESTING = False
+    # Use localhost since React is served by Flask, not Vite
+    FRONTEND_URL = "http://localhost:5000"
+
 class ProductionConfig(BaseConfig):
     DEBUG = False
     TESTING = False
