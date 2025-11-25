@@ -64,8 +64,9 @@ function Members() {
   }, [filters, pagination.limit, navigate]);
 
   useEffect(() => {
-    // Check if user is treasurer/admin
-    if (user && !['treasurer', 'admin'].includes(user.role)) {
+    // Check if user has full access (treasurer, admin, president, vice_1)
+    const hasFullAccess = ['admin', 'treasurer', 'president', 'vice_1'].includes(user?.role);
+    if (user && !hasFullAccess) {
       navigate('/dashboard');
       return;
     }

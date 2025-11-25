@@ -19,7 +19,8 @@ from datetime import datetime
 treasurer_bp = Blueprint('treasurer_bp', __name__, url_prefix='/treasurer', template_folder='treasurer')
 
 def is_treasurer():
-    return current_user.role in ['admin', 'treasurer']
+    """Check if current user has full treasurer access (includes executive roles)"""
+    return current_user.role in ['admin', 'treasurer', 'president', 'vice_1']
 
 @treasurer_bp.before_request
 @login_required

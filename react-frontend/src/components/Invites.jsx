@@ -31,8 +31,9 @@ function Invites() {
   const [createdInvite, setCreatedInvite] = useState(null);
 
   useEffect(() => {
-    // Check if user is treasurer/admin
-    if (user && !['treasurer', 'admin'].includes(user.role)) {
+    // Check if user has report access (can create invites)
+    const hasReportAccess = ['admin', 'treasurer', 'president', 'vice_1', 'vice_2', 'secretary'].includes(user?.role);
+    if (user && !hasReportAccess) {
       navigate('/dashboard');
       return;
     }
@@ -427,6 +428,10 @@ function Invites() {
                       <option value="member">Member</option>
                       <option value="treasurer">Treasurer</option>
                       <option value="admin">Admin</option>
+                      <option value="president">President</option>
+                      <option value="vice_1">1st Vice President</option>
+                      <option value="vice_2">2nd Vice President</option>
+                      <option value="secretary">Secretary</option>
                     </select>
                   </div>
 

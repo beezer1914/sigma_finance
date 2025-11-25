@@ -9,14 +9,18 @@ function Header({ onLogout }) {
 
   const isActive = (path) => location.pathname === path;
 
+  // Role-based access helpers
+  const hasFullAccess = () => ['admin', 'treasurer', 'president', 'vice_1'].includes(user?.role);
+  const hasReportAccess = () => ['admin', 'treasurer', 'president', 'vice_1', 'vice_2', 'secretary'].includes(user?.role);
+
   const navLinks = [
     { to: '/dashboard', label: 'Dashboard', show: true },
     { to: '/payments', label: 'Payments', show: true },
-    { to: '/treasurer', label: 'Treasurer', show: user?.role === 'treasurer' },
-    { to: '/members', label: 'Members', show: user?.role === 'treasurer' },
-    { to: '/donations', label: 'Donations', show: user?.role === 'treasurer' },
-    { to: '/invites', label: 'Invites', show: user?.role === 'treasurer' },
-    { to: '/reports', label: 'Reports', show: user?.role === 'treasurer' },
+    { to: '/treasurer', label: 'Treasurer', show: hasFullAccess() },
+    { to: '/members', label: 'Members', show: hasFullAccess() },
+    { to: '/donations', label: 'Donations', show: hasFullAccess() },
+    { to: '/invites', label: 'Invites', show: hasReportAccess() },
+    { to: '/reports', label: 'Reports', show: hasReportAccess() },
   ];
 
   const visibleLinks = navLinks.filter(link => link.show);
