@@ -585,12 +585,21 @@ def create_payment_plan():
 
 
 # ============================================================================
-# Treasurer Endpoints (Admin/Treasurer Only)
+# Treasurer Endpoints (Role-Based Access)
 # ============================================================================
 
+def has_full_access():
+    """Check if current user has full treasurer access"""
+    return current_user.role in ['admin', 'treasurer', 'president', 'vice_1']
+
+def has_report_access():
+    """Check if current user can view reports and create invites"""
+    return current_user.role in ['admin', 'treasurer', 'president', 'vice_1', 'vice_2', 'secretary']
+
+# Legacy alias for backwards compatibility
 def is_treasurer():
-    """Check if current user is treasurer or admin"""
-    return current_user.role in ['admin', 'treasurer']
+    """Check if current user is treasurer or admin (legacy)"""
+    return has_full_access()
 
 
 @api_bp.route("/treasurer/stats", methods=["GET"])
@@ -770,9 +779,9 @@ def get_member_detail(user_id):
 def get_reports_summary():
     """
     Get financial reports summary.
-    Requires treasurer or admin role.
+    Requires report access (vice_2, secretary, or higher).
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.services.stats import (
@@ -1089,9 +1098,9 @@ def create_donation():
 def get_invites():
     """
     Get all invite codes with pagination.
-    Requires treasurer or admin role.
+    Requires report access (vice_2, secretary, or higher).
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.models import InviteCode
@@ -1147,9 +1156,9 @@ def get_invites():
 def get_invite_stats():
     """
     Get invite code statistics.
-    Requires treasurer or admin role.
+    Requires report access (vice_2, secretary, or higher).
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.models import InviteCode
@@ -1180,9 +1189,9 @@ def get_invite_stats():
 def create_invite():
     """
     Create a new invite code and optionally send it via email.
-    Requires treasurer or admin role.
+    Requires report access (vice_2, secretary, or higher).
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.models import InviteCode
@@ -1199,7 +1208,8 @@ def create_invite():
     expires_in_days = data.get('expires_in_days', 7)
 
     # Validation
-    if role not in ['member', 'treasurer', 'admin']:
+    valid_roles = ['member', 'treasurer', 'admin', 'president', 'vice_1', 'vice_2', 'secretary']
+    if role not in valid_roles:
         return jsonify({"error": "Invalid role"}), 400
 
     try:

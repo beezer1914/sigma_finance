@@ -15,8 +15,9 @@ function Reports() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    // Check if user is treasurer/admin
-    if (user && !['treasurer', 'admin'].includes(user.role)) {
+    // Check if user has report access
+    const hasReportAccess = ['admin', 'treasurer', 'president', 'vice_1', 'vice_2', 'secretary'].includes(user?.role);
+    if (user && !hasReportAccess) {
       navigate('/dashboard');
       return;
     }

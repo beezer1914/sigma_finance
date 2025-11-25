@@ -247,7 +247,8 @@ def cancel():
 @payments.route("/")
 @login_required
 def dashboard():
-    if current_user.role == "treasurer":
+    # Full access roles can view all payments
+    if current_user.role in ['admin', 'treasurer', 'president', 'vice_1']:
         payments = Payment.query.order_by(Payment.date.desc()).limit(100).all()
     else:
         payments = (
