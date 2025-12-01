@@ -51,6 +51,34 @@ def create_app():
     bcrypt.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
+
+    # Custom unauthorized handler for API routes
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        """
+        Handle unauthorized access attempts.
+        - For API routes: Return JSON 401 (React handles login redirect)
+        - For web routes: Redirect to login page (only in debug mode with Jinja templates)
+        """
+        from flask import request, jsonify, redirect, url_for
+
+        # For API requests, return JSON 401
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "error": "Authentication required. Please log in.",
+                "authenticated": False
+            }), 401
+
+        # For web requests in debug mode, redirect to login
+        if app.debug:
+            return redirect(url_for('auth.login'))
+
+        # For web requests in production, return JSON (templates not registered)
+        return jsonify({
+            "error": "Authentication required",
+            "authenticated": False
+        }), 401
+
     Migrate(app, db)
     cache.init_app(app)
     limiter.init_app(app)  # Rate limiter reads RATELIMIT_STORAGE_URL from app.config automatically
@@ -114,7 +142,27 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(webhook_bp)
 
-    # Exempt API routes from CSRF protection (they use JSON and session auth)
+    # ⚠️ SECURITY WARNING: API routes currently exempted from CSRF protection
+    # This is a KNOWN SECURITY RISK - API endpoints using session auth are vulnerable to CSRF attacks.
+    #
+    # MITIGATION IN PLACE:
+    # - Rate limiting on sensitive endpoints (login: 3/15min, register: 3/hour, payments)
+    # - Session regeneration on login (prevents session fixation)
+    # - SameSite cookie policy (Lax in dev, Strict in production)
+    # - Strong password requirements (12+ chars with complexity)
+    # - No debug information in error responses
+    #
+    # TODO - HIGH PRIORITY: Implement proper CSRF protection:
+    # 1. React frontend: Call /api/csrf-token on app load
+    # 2. React frontend: Include X-CSRFToken header in all POST/PUT/DELETE requests
+    # 3. Backend: Remove csrf.exempt(api_bp) below
+    # 4. Backend: Keep webhook exemptions (already handled via @csrf.exempt decorator)
+    #
+    # Endpoints to exempt individually after removing blanket exemption:
+    # - /api/csrf-token (GET) - must be accessible to get token
+    # - /api/health (GET) - monitoring endpoint
+    # - /api/donate/link (GET) - public endpoint
+    # - Webhooks (already have @csrf.exempt decorator)
     csrf.exempt(api_bp)
 
     # Register Jinja template blueprints ONLY in debug mode
@@ -185,10 +233,20 @@ def create_app():
     # Error handler for rate limit exceeded
     @app.errorhandler(429)
     def rate_limit_exceeded(error):
-        # In production, return JSON (Jinja templates use auth.login which isn't registered)
+        from flask import jsonify, request
+
+        # For API requests, always return JSON
+        if request.path.startswith('/api/'):
+            return jsonify({
+                "error": "Too many requests. Please try again later.",
+                "retry_after": 900  # 15 minutes in seconds
+            }), 429
+
+        # For web requests in production, return JSON (templates not registered)
         if not app.debug:
-            from flask import jsonify
-            return jsonify({"error": "Too many requests", "retry_after": 60}), 429
+            return jsonify({"error": "Too many requests", "retry_after": 900}), 429
+
+        # For web requests in debug, return template
         return render_template('errors/429.html'), 429
 
     # Debug: Print all routes (only in development)
