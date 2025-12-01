@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash
 from sigma_finance.models import Payment, PaymentPlan, User, InviteCode
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sigma_finance.extensions import db, limiter
+from sigma_finance.utils.password_validator import validate_password_strength
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -71,12 +72,28 @@ def get_donation_link():
     }), 200
 
 
+@api_bp.route("/csrf-token", methods=["GET"])
+def get_csrf_token():
+    """
+    Get CSRF token for React frontend.
+    This endpoint generates and returns a CSRF token that the React app
+    should include in the X-CSRFToken header for all state-changing requests.
+
+    No authentication required - token is tied to session.
+    """
+    from flask_wtf.csrf import generate_csrf
+    token = generate_csrf()
+    return jsonify({
+        "csrf_token": token
+    }), 200
+
+
 # ============================================================================
 # Authentication Endpoints
 # ============================================================================
 
 @api_bp.route("/auth/login", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("3 per 15 minutes")
 def login():
     """
     Authenticate a user and create a session.
@@ -104,6 +121,10 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
+        # Regenerate session to prevent session fixation attacks
+        session.clear()
+        session.permanent = True
+
         login_user(user, remember=True)
         return jsonify({
             "success": True,
@@ -162,6 +183,11 @@ def register():
     if invite.expires_at and invite.expires_at < datetime.utcnow():
         return jsonify({"error": "Invite code has expired"}), 400
 
+    # Validate password strength
+    is_valid, error_message = validate_password_strength(password)
+    if not is_valid:
+        return jsonify({"error": error_message}), 400
+
     # Create new user
     role = invite.role if invite else "member"
 
@@ -191,6 +217,8 @@ def register():
         }), 201
 
     except Exception as e:
+        import logging
+        logging.error(f"Registration error: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({"error": "An error occurred during registration"}), 500
 
@@ -271,8 +299,12 @@ def update_profile():
             return jsonify({"error": "Current password required to change password"}), 400
         if not current_user.check_password(current_password):
             return jsonify({"error": "Current password is incorrect"}), 400
-        if len(new_password) < 6:
-            return jsonify({"error": "New password must be at least 6 characters"}), 400
+
+        # Validate password strength
+        is_valid, error_message = validate_password_strength(new_password)
+        if not is_valid:
+            return jsonify({"error": error_message}), 400
+
         current_user.password_hash = generate_password_hash(new_password)
 
     try:
@@ -481,7 +513,10 @@ def create_checkout_session():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Log the error for debugging but don't expose details to client
+        import logging
+        logging.error(f"Checkout session creation failed: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to create checkout session"}), 500
 
 
 @api_bp.route("/payment-plans", methods=["POST"])
@@ -1236,7 +1271,14 @@ def create_invite():
         email_sent = False
         if email:
             # Send email with invite code
-            signup_url = url_for("auth.register", _external=True)
+            # In production, use frontend URL from config (auth blueprint not registered)
+            from flask import current_app
+            if current_app.debug:
+                signup_url = url_for("auth.register", _external=True)
+            else:
+                # Use frontend URL from config + /register route
+                signup_url = f"{current_app.config['FRONTEND_URL']}/register"
+
             context = {
                 "code": code,
                 "expires_at": expires_at,
@@ -1267,8 +1309,10 @@ def create_invite():
         }), 201
 
     except Exception as e:
+        import logging
+        logging.error(f"Failed to create invite code: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": "Failed to create invite code"}), 500
+        return jsonify({"error": f"Failed to create invite code: {str(e)}"}), 500
 
 
 @api_bp.route("/invites/<int:invite_id>", methods=["DELETE"])
