@@ -809,6 +809,67 @@ def get_member_detail(user_id):
     }), 200
 
 
+@api_bp.route("/treasurer/members/<int:user_id>", methods=["PUT"])
+@login_required
+def update_member(user_id):
+    """
+    Update member details (name, email, role, status, etc.).
+    Requires treasurer or admin role.
+    """
+    if not is_treasurer():
+        return jsonify({"error": "Access denied"}), 403
+
+    member = User.query.get(user_id)
+    if not member:
+        return jsonify({"error": "Member not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    # Update basic fields
+    if "name" in data:
+        member.name = data["name"]
+
+    if "email" in data:
+        # Check if email is already taken by another user
+        existing_user = User.query.filter(
+            User.email.ilike(data["email"]),
+            User.id != user_id
+        ).first()
+        if existing_user:
+            return jsonify({"error": "Email already in use"}), 400
+        member.email = data["email"]
+
+    if "role" in data:
+        member.role = data["role"].lower()
+
+    if "active" in data:
+        member.active = bool(data["active"])
+
+    if "financial_status" in data:
+        member.financial_status = data["financial_status"].lower() if data["financial_status"] else member.financial_status
+
+    if "initiation_date" in data and data["initiation_date"]:
+        try:
+            # Accept ISO format (YYYY-MM-DD)
+            from datetime import datetime
+            member.initiation_date = datetime.strptime(data["initiation_date"], "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid initiation date format. Use YYYY-MM-DD"}), 400
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "message": f"Updated member: {member.name}",
+            "member": member.to_dict()
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to update member: {str(e)}"}), 500
+
+
 @api_bp.route("/treasurer/reports/summary", methods=["GET"])
 @login_required
 def get_reports_summary():

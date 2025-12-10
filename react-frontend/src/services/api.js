@@ -138,6 +138,12 @@ export const treasurerAPI = {
     return response.data;
   },
 
+  // Update member details
+  updateMember: async (userId, data) => {
+    const response = await api.put(`/treasurer/members/${userId}`, data);
+    return response.data;
+  },
+
   // Get all payments (treasurer view)
   getAllPayments: async (params = {}) => {
     const response = await api.get('/treasurer/payments', { params });

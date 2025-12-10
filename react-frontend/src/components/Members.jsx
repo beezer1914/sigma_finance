@@ -373,6 +373,7 @@ function Members() {
         <MemberDetailModal
           memberId={selectedMemberId}
           onClose={() => setSelectedMemberId(null)}
+          onUpdate={() => fetchMembers(pagination.offset)}
         />
       )}
     </div>
