@@ -2,10 +2,23 @@ import { useEffect, useState } from 'react';
 import { treasurerAPI } from '../services/api';
 import { formatCurrency, formatDate, getStatusColor } from '../utils/formatters';
 
-function MemberDetailModal({ memberId, onClose }) {
+function MemberDetailModal({ memberId, onClose, onUpdate }) {
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Form state for editing
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: '',
+    active: true,
+    financial_status: '',
+    initiation_date: '',
+  });
 
   useEffect(() => {
     const fetchMemberDetail = async () => {
@@ -13,6 +26,15 @@ function MemberDetailModal({ memberId, onClose }) {
         setLoading(true);
         const data = await treasurerAPI.getMemberDetail(memberId);
         setMember(data);
+        // Initialize form data with member details
+        setFormData({
+          name: data.member?.name || '',
+          email: data.member?.email || '',
+          role: data.member?.role || '',
+          active: data.member?.active ?? true,
+          financial_status: data.member?.financial_status || '',
+          initiation_date: data.member?.initiation_date || '',
+        });
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load member details');
       } finally {
@@ -24,6 +46,56 @@ function MemberDetailModal({ memberId, onClose }) {
       fetchMemberDetail();
     }
   }, [memberId]);
+
+  const handleEdit = () => {
+    setIsEditMode(true);
+    setError(null);
+    setSuccessMessage('');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setError(null);
+    setSuccessMessage('');
+    // Reset form data to original member data
+    setFormData({
+      name: member?.member?.name || '',
+      email: member?.member?.email || '',
+      role: member?.member?.role || '',
+      active: member?.member?.active ?? true,
+      financial_status: member?.member?.financial_status || '',
+      initiation_date: member?.member?.initiation_date || '',
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      const updatedData = await treasurerAPI.updateMember(memberId, formData);
+      setMember({ ...member, member: updatedData.member });
+      setSuccessMessage('Member updated successfully!');
+      setIsEditMode(false);
+      // Call onUpdate callback if provided to refresh parent component
+      if (onUpdate) {
+        onUpdate();
+      }
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update member');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
 
   // Close on escape key
   useEffect(() => {
@@ -73,35 +145,142 @@ function MemberDetailModal({ memberId, onClose }) {
               </div>
             ) : member ? (
               <div className="space-y-6">
-                {/* Member Info */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
-                      {member.member?.name?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900">{member.member?.name}</h3>
-                      <p className="text-gray-600">{member.member?.email}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-sm text-gray-500 capitalize">{member.member?.role}</span>
-                        <span className="text-gray-300">|</span>
-                        {member.member?.is_neophyte ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Neophyte (Exempt)
-                          </span>
-                        ) : (
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                              member.member?.financial_status
-                            )}`}
-                          >
-                            {member.member?.financial_status || 'Not Set'}
-                          </span>
-                        )}
+                {/* Success Message */}
+                {successMessage && (
+                  <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                    {successMessage}
+                  </div>
+                )}
+
+                {/* Member Info - View or Edit Mode */}
+                {isEditMode ? (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Edit Member Details</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Role
+                        </label>
+                        <select
+                          name="role"
+                          value={formData.role}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+                        >
+                          <option value="member">Member</option>
+                          <option value="president">President</option>
+                          <option value="vice_1">1st Vice President</option>
+                          <option value="vice_2">2nd Vice President</option>
+                          <option value="vice_3">3rd Vice President</option>
+                          <option value="secretary">Secretary</option>
+                          <option value="treasurer">Treasurer</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Financial Status
+                        </label>
+                        <select
+                          name="financial_status"
+                          value={formData.financial_status}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+                        >
+                          <option value="financial">Financial</option>
+                          <option value="not financial">Not Financial</option>
+                          <option value="neophyte">Neophyte</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Initiation Date
+                        </label>
+                        <input
+                          type="date"
+                          name="initiation_date"
+                          value={formData.initiation_date}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="active"
+                          name="active"
+                          checked={formData.active}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                          Active Member
+                        </label>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+                        {member.member?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900">{member.member?.name}</h3>
+                        <p className="text-gray-600">{member.member?.email}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-sm text-gray-500 capitalize">{member.member?.role}</span>
+                          <span className="text-gray-300">|</span>
+                          {member.member?.is_neophyte ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              Neophyte (Exempt)
+                            </span>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                                member.member?.financial_status
+                              )}`}
+                            >
+                              {member.member?.financial_status || 'Not Set'}
+                            </span>
+                          )}
+                          {member.member?.initiation_date && (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <span className="text-sm text-gray-500">
+                                Initiated: {formatDate(member.member.initiation_date)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Financial Summary */}
                 <div>
@@ -218,13 +397,47 @@ function MemberDetailModal({ memberId, onClose }) {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Close
-            </button>
+          <div className="flex justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+            {isEditMode ? (
+              <>
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleEdit}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Edit Member
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
