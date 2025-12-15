@@ -25,25 +25,25 @@ def seed_executive_users():
                 'name': 'Test President',
                 'email': 'president@test.com',
                 'role': 'president',
-                'password': 'test123',
+                'password': 'TestPass123!',  # Updated to meet new security requirements
             },
             {
                 'name': 'Test First Vice',
                 'email': 'vice1@test.com',
                 'role': 'vice_1',
-                'password': 'test123',
+                'password': 'TestPass123!',  # Updated to meet new security requirements
             },
             {
                 'name': 'Test Second Vice',
                 'email': 'vice2@test.com',
                 'role': 'vice_2',
-                'password': 'test123',
+                'password': 'TestPass123!',  # Updated to meet new security requirements
             },
             {
                 'name': 'Test Secretary',
                 'email': 'secretary@test.com',
                 'role': 'secretary',
-                'password': 'test123',
+                'password': 'TestPass123!',  # Updated to meet new security requirements
             },
         ]
 
@@ -77,13 +77,15 @@ def seed_executive_users():
             print("TEST CREDENTIALS")
             print("=" * 60)
             print("\n[FULL ACCESS] (can access all treasurer features):")
-            print("   President:       president@test.com / test123")
-            print("   1st Vice:        vice1@test.com / test123")
+            print("   President:       president@test.com / TestPass123!")
+            print("   1st Vice:        vice1@test.com / TestPass123!")
             print("\n[REPORT ACCESS] (can view reports and create invites):")
-            print("   2nd Vice:        vice2@test.com / test123")
-            print("   Secretary:       secretary@test.com / test123")
+            print("   2nd Vice:        vice2@test.com / TestPass123!")
+            print("   Secretary:       secretary@test.com / TestPass123!")
             print("\n" + "=" * 60)
             print("\nLogin at: http://localhost:5173/login")
+            print("\nNOTE: Password meets security requirements:")
+            print("  - 12+ characters, uppercase, lowercase, digit, special char")
 
         except Exception as e:
             db.session.rollback()

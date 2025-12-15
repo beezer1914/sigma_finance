@@ -52,7 +52,9 @@ def reports_dashboard():
             plan_summary=plan_summary
         )
     except Exception as e:
-        flash(f"Error loading reports: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error loading reports: {str(e)}", exc_info=True)
+        flash("Error loading reports. Please try again.", "danger")
         return redirect(url_for('dashboard.show_dashboard'))
 
 
@@ -80,7 +82,9 @@ def dues_paid_report():
             summary=summary
         )
     except Exception as e:
-        flash(f"Error loading dues report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error loading dues report: {str(e)}", exc_info=True)
+        flash("Error loading dues report. Please try again.", "danger")
         return redirect(url_for('reports.reports_dashboard'))
 
 
@@ -109,7 +113,9 @@ def payment_plans_report():
             summary=summary
         )
     except Exception as e:
-        flash(f"Error loading payment plans report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error loading payment plans report: {str(e)}", exc_info=True)
+        flash("Error loading payment plans report. Please try again.", "danger")
         return redirect(url_for('reports.reports_dashboard'))
 
 
@@ -137,7 +143,9 @@ def export_dues_paid():
 
         return response
     except Exception as e:
-        flash(f"Error exporting report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error exporting dues report: {str(e)}", exc_info=True)
+        flash("Error exporting report. Please try again.", "danger")
         return redirect(url_for('reports.dues_paid_report'))
 
 
@@ -165,7 +173,9 @@ def export_payment_plans():
 
         return response
     except Exception as e:
-        flash(f"Error exporting report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error exporting payment plans report: {str(e)}", exc_info=True)
+        flash("Error exporting report. Please try again.", "danger")
         return redirect(url_for('reports.payment_plans_report'))
 
 
@@ -206,7 +216,9 @@ def donations_report():
             avg_amount=avg_amount
         )
     except Exception as e:
-        flash(f"Error loading donations report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error loading donations report: {str(e)}", exc_info=True)
+        flash("Error loading donations report. Please try again.", "danger")
         return redirect(url_for('reports.reports_dashboard'))
 
 
@@ -234,7 +246,9 @@ def export_donations():
 
         return response
     except Exception as e:
-        flash(f"Error exporting report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error exporting donations: {str(e)}", exc_info=True)
+        flash("Error exporting report. Please try again.", "danger")
         return redirect(url_for('reports.donations_report'))
 
 
@@ -262,7 +276,9 @@ def export_top_donors():
 
         return response
     except Exception as e:
-        flash(f"Error exporting report: {str(e)}", "danger")
+        import logging
+        logging.error(f"Error exporting top donors: {str(e)}", exc_info=True)
+        flash("Error exporting report. Please try again.", "danger")
         return redirect(url_for('reports.donations_report'))
 
 
@@ -344,5 +360,7 @@ def donations_filtered():
             avg_amount=avg_amount
         )
     except Exception as e:
-        # Return error message as HTML
-        return f'<div class="alert alert-danger">Error filtering donations: {str(e)}</div>', 500
+        # Log error but don't expose details to client
+        import logging
+        logging.error(f"Error filtering donations: {str(e)}", exc_info=True)
+        return '<div class="alert alert-danger">Error filtering donations. Please try again.</div>', 500

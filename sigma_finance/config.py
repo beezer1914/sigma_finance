@@ -25,6 +25,12 @@ class BaseConfig:
     # Frontend URL for Stripe redirects (override in subclasses)
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
+    # CSRF Protection (cookie-based for React SPA)
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_CHECK_DEFAULT = True
+    WTF_CSRF_TIME_LIMIT = None  # No expiration (session-based)
+    WTF_CSRF_SSL_STRICT = False  # Allow local development
+
     # Email
     SENDGRID_API_KEY = read_render_secret("SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL = read_render_secret("DEFAULT_FROM_EMAIL") or "no-reply@sds1914.com"
@@ -89,6 +95,12 @@ class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+
+    # CSRF Protection (secure in production)
+    WTF_CSRF_SSL_STRICT = True  # Enforce HTTPS
+    WTF_CSRF_COOKIE_SECURE = True  # CSRF cookie only over HTTPS
+    WTF_CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookie
+    WTF_CSRF_COOKIE_SAMESITE = 'Strict'  # Prevent CSRF in cross-site requests
 
     # Rate Limiting with Redis
     RATELIMIT_STORAGE_URL = read_render_secret("REDIS_URL") or "redis://localhost:6379/0"

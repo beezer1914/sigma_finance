@@ -30,11 +30,6 @@ function Login() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Clear errors when component unmounts
-  useEffect(() => {
-    return () => clearError();
-  }, [clearError]);
-
   const onSubmit = async (data) => {
     const result = await login(data.email, data.password);
     if (result.success) {
@@ -64,6 +59,7 @@ function Login() {
               id="email"
               type="email"
               {...register('email')}
+              onFocus={() => error && clearError()}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -82,6 +78,7 @@ function Login() {
               id="password"
               type="password"
               {...register('password')}
+              onFocus={() => error && clearError()}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.password ? 'border-red-500' : 'border-gray-300'
               }`}

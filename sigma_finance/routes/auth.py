@@ -1,6 +1,6 @@
 import datetime
 import logging
-from flask import Blueprint, render_template, redirect, request, url_for, flash
+from flask import Blueprint, render_template, redirect, request, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash
 from sigma_finance.models import InviteCode, User
@@ -41,7 +41,7 @@ def get_dashboard_route(user):
     }.get(user.role, "index")
 
 @auth.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute")  # Prevent brute force attacks
+@limiter.limit("3 per 15 minutes")  # Prevent brute force attacks
 def login():
     if current_user.is_authenticated:
         return redirect(url_for(get_dashboard_route(current_user)))
@@ -50,6 +50,10 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
+            # Regenerate session to prevent session fixation attacks
+            session.clear()
+            session.permanent = True
+
             login_user(user, remember=True)
             flash("Logged in successfully!", "success")
             return redirect(url_for(get_dashboard_route(user)))
