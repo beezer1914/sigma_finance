@@ -75,10 +75,10 @@ def get_donation_link():
 @api_bp.route("/csrf-token", methods=["GET"])
 def get_csrf_token():
     """
-    Get CSRF token for React frontend.
-    This endpoint generates and returns a CSRF token that the React app
-    should include in the X-CSRFToken header for all state-changing requests.
+    Get CSRF token for React frontend (legacy endpoint, not currently used).
+    This endpoint generates and returns a CSRF token.
 
+    Note: CSRF protection is handled by SameSite cookies instead of tokens.
     No authentication required - token is tied to session.
     """
     from flask_wtf.csrf import generate_csrf
@@ -118,9 +118,19 @@ def login():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
+    # Prevent timing attacks by always performing hash operation
     user = User.query.filter_by(email=email).first()
+    is_valid = False
 
-    if user and user.check_password(password):
+    if user:
+        # User exists, check password
+        is_valid = user.check_password(password)
+    else:
+        # User doesn't exist, perform dummy hash to match timing
+        # This prevents attackers from determining valid emails by timing
+        generate_password_hash("dummy_password_constant_time_protection")
+
+    if is_valid:
         # Regenerate session to prevent session fixation attacks
         session.clear()
         session.permanent = True
@@ -132,6 +142,7 @@ def login():
             "user": user.to_dict()
         }), 200
 
+    # Always return same error message (don't reveal if email exists)
     return jsonify({"error": "Invalid credentials"}), 401
 
 
