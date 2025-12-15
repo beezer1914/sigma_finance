@@ -136,8 +136,10 @@ def treasurer_reset_user(user_id):
         db.session.commit()
         flash(f"Payment plans and payments reset for {user.name}", "success")
     except Exception as e:
+        import logging
+        logging.error(f"Error resetting user: {str(e)}", exc_info=True)
         db.session.rollback()
-        flash(f"Error resetting user: {str(e)}", "danger")
+        flash("Error resetting user. Please try again.", "danger")
     
     return redirect(url_for("treasurer_bp.treasurer_manage_members"))
 

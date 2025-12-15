@@ -30,7 +30,7 @@ const useAuthStore = create((set) => ({
   // Login action
   login: async (email, password) => {
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true });
       const data = await authAPI.login(email, password);
       set({
         user: data.user,
@@ -40,7 +40,22 @@ const useAuthStore = create((set) => ({
       });
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Login failed';
+      // Enhanced error handling for all HTTP error codes (including 429)
+      let errorMessage = 'Login failed';
+
+      if (error.response) {
+        // Server responded with error status (400, 401, 429, 500, etc.)
+        errorMessage = error.response.data?.error || error.response.statusText || errorMessage;
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        // Error in request setup
+        errorMessage = error.message || errorMessage;
+      }
+
+      console.error('Login error:', error.response?.status, errorMessage);
+
       set({
         error: errorMessage,
         isLoading: false,
@@ -52,15 +67,33 @@ const useAuthStore = create((set) => ({
   // Register action
   register: async (name, email, password, invite_code) => {
     try {
-      set({ isLoading: true, error: null });
-      await authAPI.register(name, email, password, invite_code);
+      set({ isLoading: true });
+      const data = await authAPI.register(name, email, password, invite_code);
+      // User is now automatically logged in after registration
       set({
+        user: data.user,
+        isAuthenticated: true,
         isLoading: false,
         error: null,
       });
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Registration failed';
+      // Enhanced error handling for all HTTP error codes (including 429)
+      let errorMessage = 'Registration failed';
+
+      if (error.response) {
+        // Server responded with error status (400, 401, 429, 500, etc.)
+        errorMessage = error.response.data?.error || error.response.statusText || errorMessage;
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        // Error in request setup
+        errorMessage = error.message || errorMessage;
+      }
+
+      console.error('Registration error:', error.response?.status, errorMessage);
+
       set({
         error: errorMessage,
         isLoading: false,

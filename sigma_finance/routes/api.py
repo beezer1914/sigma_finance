@@ -211,9 +211,16 @@ def register():
 
         db.session.commit()
 
+        # Automatically log the user in after successful registration
+        # Regenerate session to prevent session fixation attacks
+        session.clear()
+        session.permanent = True
+        login_user(new_user, remember=True)
+
         return jsonify({
             "success": True,
-            "message": "Account created successfully"
+            "message": "Account created successfully",
+            "user": new_user.to_dict()
         }), 201
 
     except Exception as e:

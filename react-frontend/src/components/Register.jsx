@@ -9,7 +9,12 @@ import useAuthStore from '../stores/authStore';
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string()
+    .min(12, 'Password must be at least 12 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/\d/, 'Password must contain at least one digit')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character'),
   confirmPassword: z.string(),
   invite_code: z.string().min(1, 'Invite code is required'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -42,7 +47,20 @@ function Register() {
     return () => clearError();
   }, [clearError]);
 
+  // Debug: Watch successMessage changes
+  useEffect(() => {
+    console.log('successMessage state changed to:', successMessage);
+  }, [successMessage]);
+
+  // Debug: Log on every render
+  console.log('Register component rendering, successMessage:', successMessage, 'error:', error);
+
   const onSubmit = async (data) => {
+    // Clear any previous errors and success messages
+    clearError();
+    setSuccessMessage('');
+
+    console.log('Submitting registration...');
     const result = await registerUser(
       data.name,
       data.email,
@@ -50,11 +68,18 @@ function Register() {
       data.invite_code
     );
 
+    console.log('Registration result:', result);
+
     if (result.success) {
-      setSuccessMessage('Account created successfully! Redirecting to login...');
+      console.log('Registration successful, user is now logged in');
+      // User is automatically logged in after registration, redirect to dashboard
+      setSuccessMessage('Account created successfully! Redirecting to dashboard...');
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        console.log('Redirecting to dashboard');
+        navigate('/dashboard');
+      }, 1000);
+    } else {
+      console.log('Registration failed:', result.error);
     }
   };
 
@@ -73,6 +98,7 @@ function Register() {
 
         {successMessage && (
           <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            {console.log('Rendering success message div:', successMessage)}
             {successMessage}
           </div>
         )}
@@ -130,6 +156,9 @@ function Register() {
             {errors.password && (
               <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
             )}
+            <p className="mt-1 text-xs text-gray-500">
+              Must be 12+ characters with uppercase, lowercase, digit, and special character
+            </p>
           </div>
 
           <div className="mb-4">
