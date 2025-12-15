@@ -152,17 +152,13 @@ def create_app():
     # - Strong password requirements (12+ chars with complexity)
     # - No debug information in error responses
     #
-    # TODO - HIGH PRIORITY: Implement proper CSRF protection:
-    # 1. React frontend: Call /api/csrf-token on app load
-    # 2. React frontend: Include X-CSRFToken header in all POST/PUT/DELETE requests
-    # 3. Backend: Remove csrf.exempt(api_bp) below
-    # 4. Backend: Keep webhook exemptions (already handled via @csrf.exempt decorator)
-    #
-    # Endpoints to exempt individually after removing blanket exemption:
-    # - /api/csrf-token (GET) - must be accessible to get token
-    # - /api/health (GET) - monitoring endpoint
-    # - /api/donate/link (GET) - public endpoint
-    # - Webhooks (already have @csrf.exempt decorator)
+    # CSRF Protection Strategy for React SPA + REST API:
+    # API endpoints are exempted from Flask-WTF's CSRF (designed for server-rendered forms)
+    # CSRF protection is instead provided by SameSite cookies:
+    # - SESSION_COOKIE_SAMESITE = 'Strict' (production) / 'Lax' (dev)
+    # - Prevents browsers from sending cookies in cross-site requests
+    # - More appropriate for React SPA + REST API architecture than token-based CSRF
+    # - Combined with HTTPONLY + SECURE cookies in production
     csrf.exempt(api_bp)
 
     # Register Jinja template blueprints ONLY in debug mode
