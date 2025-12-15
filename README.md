@@ -1,26 +1,32 @@
 # Sigma Finance - Dues Payment Management System
 
-A modern, high-performance web application for managing fraternity chapter dues and payments. Built with Flask, PostgreSQL, Redis, and Stripe integration.
+A modern, high-performance full-stack web application for managing fraternity chapter dues and payments. Built with React 19, Flask, PostgreSQL, Redis, Stripe, and Twilio integration.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![Flask](https://img.shields.io/badge/flask-3.0+-green.svg)
+![React](https://img.shields.io/badge/react-19-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🎯 Overview
 
-Sigma Finance is a comprehensive dues management platform designed specifically for Sigma Delta Sigma fraternity chapters. It provides members with an intuitive interface to view their payment status, make payments, and enroll in payment plans, while giving treasurers powerful tools to track finances and manage members.
+Sigma Finance is a comprehensive dues management platform designed specifically for Sigma Delta Sigma fraternity chapters. Built as a modern single-page application (SPA) with React frontend and Flask REST API backend, it provides members with an intuitive interface to view their payment status, make payments, and enroll in payment plans, while giving treasurers powerful tools to track finances and manage members.
 
 ### Key Features
 
+- ⚛️ **Modern React SPA** - Fast, responsive single-page application with React 19
 - 💳 **Payment Processing** - Integrated Stripe checkout for secure online payments
-- 📊 **Payment Plans** - Quarterly installment plans with automatic tracking
-- 👥 **Member Management** - Role-based access control (Member, Treasurer, Admin)
-- 📈 **Financial Dashboard** - Real-time overview of chapter finances
-- 🔐 **Secure Authentication** - Password hashing, password reset, and invite-only registration
+- 📊 **Payment Plans** - Flexible installment plans (weekly, bi-weekly, monthly) with automatic tracking
+- 👥 **Member Management** - Comprehensive member administration with role editing
+- 📈 **Financial Dashboard** - Real-time overview of chapter finances and statistics
+- 🔐 **Enhanced Security** - Strong password requirements (12+ chars), session management, CSRF protection
 - ⚡ **High Performance** - Optimized database queries and Redis caching (98% faster)
-- 🛡️ **Rate Limiting** - Protection against brute force and abuse
+- 🛡️ **Rate Limiting** - Intelligent protection against brute force attacks and abuse
 - 📧 **Email Notifications** - SendGrid integration for invites and password resets
+- 📞 **SMS Communications** - Twilio integration for member communications
+- 🎫 **Invite System** - Secure invite codes with email delivery and expiration
 - 📜 **Payment History** - Full audit trail with historical data import
+- 💰 **Donation Tracking** - Record and manage organizational donations
+- 📊 **Advanced Reporting** - Comprehensive financial reports and member analytics
 
 ## 🚀 Performance Optimizations
 
@@ -47,43 +53,52 @@ This application has been heavily optimized for production use:
    - Shared cache across multiple instances
 
 3. **Rate Limiting**
-   - Login: 5 attempts per minute
+   - Login: 3 attempts per 15 minutes
    - Registration: 3 per hour
-   - Payment endpoints: 10 per minute
+   - API endpoints: Intelligent limits per endpoint
 
 ## 🛠️ Tech Stack
 
+**Frontend:**
+- React 19 (Modern UI library)
+- Vite (Build tool and dev server)
+- React Router 7 (Client-side routing)
+- Zustand (State management)
+- React Hook Form + Zod (Form validation)
+- Axios (HTTP client)
+- Tailwind CSS (Styling)
+
 **Backend:**
-- Flask 3.0+ (Python web framework)
+- Flask 3.0+ (Python REST API framework)
 - PostgreSQL (Production database)
 - SQLite (Local development)
 - Redis (Caching & rate limiting)
 - SQLAlchemy (ORM)
-- Flask-Login (Authentication)
+- Flask-Login (Session-based authentication)
 - Flask-Migrate (Database migrations)
-
-**Frontend:**
-- Jinja2 Templates
-- Tailwind CSS
-- Vanilla JavaScript
+- Flask-Limiter (Rate limiting)
 
 **Payment Processing:**
 - Stripe Checkout
 - Webhook handling for payment verification
 
-**Email:**
-- SendGrid API
+**Communications:**
+- SendGrid API (Transactional emails)
+- Twilio API (SMS notifications)
 
 **Deployment:**
 - Render (Web service, PostgreSQL, Redis)
+- Static site hosting (React build)
 
 ## 📋 Prerequisites
 
 - Python 3.11+
+- Node.js 18+ and npm
 - PostgreSQL (production) or SQLite (development)
 - Redis (production) or SimpleCache (development)
 - Stripe account
 - SendGrid account (for emails)
+- Twilio account (for SMS, optional)
 
 ## ⚙️ Installation & Setup
 
@@ -159,13 +174,29 @@ flask shell
 >>> exit()
 ```
 
-### 6. Run Development Server
+### 6. Frontend Setup
 
 ```bash
-flask run
+cd react-frontend
+npm install
 ```
 
-Visit http://localhost:5000
+### 7. Run Development Servers
+
+**Terminal 1 - Backend (Flask API):**
+```bash
+flask run
+# API runs on http://localhost:5000
+```
+
+**Terminal 2 - Frontend (React):**
+```bash
+cd react-frontend
+npm run dev
+# Frontend runs on http://localhost:5173
+```
+
+Visit http://localhost:5173 to use the application
 
 ## 🚢 Production Deployment (Render)
 
@@ -191,6 +222,14 @@ STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 SENDGRID_API_KEY=SG....
 DEFAULT_FROM_EMAIL=no-reply@yourdomain.com
+TWILIO_ACCOUNT_SID=<your-twilio-sid>
+TWILIO_AUTH_TOKEN=<your-twilio-token>
+FRONTEND_URL=https://your-frontend.onrender.com
+```
+
+**For React Frontend (if hosting separately):**
+```
+VITE_API_URL=https://your-backend.onrender.com
 ```
 
 ### 3. Build Command
@@ -216,27 +255,107 @@ gunicorn -w 4 -b 0.0.0.0:$PORT 'sigma_finance.app:create_app()'
 
 ```
 sigma_finance/
-├── migrations/              # Database migrations
-├── sigma_finance/
-│   ├── forms/              # WTForms form definitions
-│   ├── routes/             # Flask blueprints/routes
-│   │   ├── auth.py         # Authentication routes
-│   │   ├── payments.py     # Payment processing
-│   │   ├── treasurer.py    # Treasurer dashboard
-│   │   ├── webhooks.py     # Stripe webhook handler
+├── react-frontend/          # React SPA Frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Members.jsx
+│   │   │   ├── MemberDetailModal.jsx
+│   │   │   ├── Register.jsx
+│   │   │   └── ...
+│   │   ├── stores/         # Zustand state management
+│   │   │   └── authStore.js
+│   │   ├── services/       # API client
+│   │   │   └── api.js      # Axios HTTP client
+│   │   ├── utils/          # Helper functions
+│   │   ├── App.jsx         # Main app component
+│   │   └── main.jsx        # Entry point
+│   ├── package.json        # Node dependencies
+│   └── vite.config.js      # Vite configuration
+├── migrations/             # Database migrations
+├── sigma_finance/          # Flask Backend
+│   ├── forms/             # WTForms form definitions
+│   ├── routes/            # Flask blueprints/routes
+│   │   ├── api.py         # REST API endpoints
+│   │   ├── auth.py        # Legacy auth routes
+│   │   ├── treasurer.py   # Treasurer blueprint (debug only)
+│   │   ├── webhooks.py    # Stripe webhook handler
 │   │   └── ...
-│   ├── services/           # Business logic
-│   │   └── stats.py        # Statistics & analytics
-│   ├── templates/          # Jinja2 templates
-│   ├── utils/              # Helper functions
-│   ├── app.py             # Application factory
-│   ├── config.py          # Configuration classes
-│   ├── extensions.py      # Flask extensions
-│   └── models.py          # Database models
-├── instance/               # Instance-specific files (gitignored)
-├── requirements.txt        # Python dependencies
-└── README.md              # This file
+│   ├── services/          # Business logic
+│   │   └── stats.py       # Statistics & analytics
+│   ├── templates/         # Jinja2 templates (debug mode only)
+│   ├── utils/             # Helper functions
+│   │   ├── password_validator.py
+│   │   └── send_invite_email.py
+│   ├── app.py            # Application factory
+│   ├── config.py         # Configuration classes
+│   ├── extensions.py     # Flask extensions
+│   └── models.py         # Database models
+├── instance/              # Instance-specific files (gitignored)
+├── requirements.txt       # Python dependencies
+├── USER_GUIDE.md         # End-user documentation
+└── README.md             # This file
 ```
+
+## 🏗️ Application Architecture
+
+### Frontend-Backend Communication
+
+The application follows a **decoupled SPA architecture**:
+
+1. **React Frontend (Port 5173 in dev)**:
+   - Single-page application built with Vite
+   - Axios HTTP client for API communication
+   - Session-based authentication with cookies
+   - Client-side routing with React Router
+
+2. **Flask Backend (Port 5000 in dev)**:
+   - RESTful API serving JSON responses
+   - Session management with Flask-Login
+   - CORS configured for React dev server
+   - In production: Only API routes registered
+
+3. **Development Mode**:
+   - Flask serves API at `/api/*` endpoints
+   - Jinja templates available for debugging at other routes
+   - React dev server proxies API requests
+   - Hot module replacement (HMR) for fast development
+
+4. **Production Mode**:
+   - Flask serves only API routes (`/api/*`, `/webhook`)
+   - Template blueprints NOT registered (reduces attack surface)
+   - React app built and served as static files
+   - Session cookies for authentication
+
+### Key API Endpoints
+
+**Authentication**:
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - New user registration
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/user` - Get current user
+
+**Payments**:
+- `GET /api/payments` - Get user's payment history
+- `POST /api/payments/create-checkout` - Create Stripe checkout
+- `POST /api/payment-plans` - Create payment plan
+
+**Treasurer**:
+- `GET /api/treasurer/members` - List all members (paginated)
+- `GET /api/treasurer/members/:id` - Get member details
+- `PUT /api/treasurer/members/:id` - Update member details
+- `GET /api/treasurer/stats` - Financial statistics
+- `GET /api/treasurer/reports/summary` - Financial reports
+
+**Invites**:
+- `GET /api/invites` - List invite codes (with stats)
+- `POST /api/invites` - Create new invite code
+- `DELETE /api/invites/:id` - Delete unused invite
+
+**Donations**:
+- `GET /api/donations` - List donations
+- `POST /api/donations` - Record new donation
+- `GET /api/donations/summary` - Donation statistics
 
 ## 🗃️ Database Schema
 
@@ -272,71 +391,114 @@ sigma_finance/
 
 ## 🔐 Security Features
 
-- **Password Hashing** - bcrypt with salt
-- **CSRF Protection** - Flask-WTF
-- **Rate Limiting** - Protection against brute force
-- **Invite-Only Registration** - Controlled access
-- **SQL Injection Prevention** - SQLAlchemy ORM
-- **Stripe Webhook Verification** - Signature validation
-- **Session Management** - Secure cookie handling
+- **Strong Password Requirements** - Minimum 12 characters with complexity requirements:
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one digit
+  - At least one special character
+- **Password Hashing** - Werkzeug with salt
+- **CSRF Protection** - Flask-WTF (API routes exempted for React)
+- **Rate Limiting** - Intelligent protection against brute force attacks:
+  - Login: 3 attempts per 15 minutes
+  - Registration: 3 per hour
+  - Per-endpoint rate limits
+- **Invite-Only Registration** - Controlled access with expiring invite codes
+- **SQL Injection Prevention** - SQLAlchemy ORM with parameterized queries
+- **Stripe Webhook Verification** - Cryptographic signature validation
+- **Session Management** - Secure cookie handling with session regeneration
 - **Role-Based Access Control** - Decorator-based permissions
+  - Only treasurers/admins can edit member details
+  - Fine-grained access control for sensitive operations
+- **Input Validation** - Frontend (Zod) and backend (WTForms) validation
 
 ## 👥 User Roles
 
 ### Member
 - View personal dashboard
 - Make one-time payments
-- Enroll in payment plans
+- Enroll in flexible payment plans (weekly, bi-weekly, monthly)
 - View payment history
+- Update personal profile
 
-### Treasurer
+### President / 1st Vice President
 - All member permissions
 - View all member payments
-- Manage members (add, edit, deactivate)
-- Generate invite codes
-- View financial statistics
-- Reset payment records
+- View financial reports
+- Access member list
+- Create invite codes
+
+### Treasurer
+- All member and executive permissions
+- Full member management:
+  - Edit member details (name, email, role)
+  - Update financial status
+  - Set initiation dates
+  - Activate/deactivate members
+- Generate invite codes with email delivery
+- View comprehensive financial statistics
+- Record donations
+- Access advanced reports
 
 ### Admin
 - All treasurer permissions
 - System configuration
 - Advanced administrative functions
+- Full database access
 
 ## 💳 Payment Features
 
 ### One-Time Payments
-- Full dues payment ($200)
+- Custom amount payments
 - Stripe Checkout integration
-- Instant confirmation
-- Automatic status updates
+- Instant confirmation and receipt
+- Automatic financial status updates
+- Notes/descriptions for tracking
 
 ### Payment Plans
-- **Quarterly Plan**: 2 installments of $100
-- Automatic calculation
+- **Flexible Schedules**:
+  - Weekly installments
+  - Bi-weekly (every 2 weeks)
+  - Monthly installments
+- Custom total amounts and start dates
+- Automatic installment calculation
 - Progress tracking with visual indicators
-- Auto-archival on completion
+- Balance tracking
+- One active plan per member
 
 ### Payment Methods
 - Credit/Debit Card (Stripe)
-- Manual entry (Cash, Check, etc.)
-- Historical import
+- Manual entry (Cash, Check, Bank Transfer, etc.)
+- Historical import from Excel
 
 ## 📊 Treasurer Dashboard
 
 ### Features
-- Total dues collected
-- Unpaid members list
-- Active payment plans overview
-- Outstanding balances
-- Payment history with pagination
-- Member management interface
-- Invite code generation
-
-### Statistics
-- Payment summaries by type
-- Payment method breakdown
-- Monthly trends
-- Per-member financial status
+- **Member Management**:
+  - View all members with pagination
+  - Filter by financial status, payment plan status
+  - Search by name or email
+  - View delinquent members
+  - Edit member details (role, status, initiation date)
+  - Click any member for detailed view
+- **Invite System**:
+  - Generate invite codes with expiration
+  - Email delivery with SendGrid
+  - Track invite status (unused, used, expired)
+  - View who used each invite
+- **Financial Overview**:
+  - Total collections and payment counts
+  - Active payment plan tracking
+  - Outstanding balances
+  - Delinquent member alerts
+- **Donation Management**:
+  - Record donations with details
+  - Track donor history
+  - View donation statistics
+- **Reports**:
+  - Comprehensive financial summaries
+  - Member financial status breakdown
+  - Payment type analysis
+  - Export capabilities
 
 ## 📥 Historical Data Import
 
