@@ -9,12 +9,19 @@ import { formatCurrency } from '../utils/formatters';
 const planSchema = z.object({
   frequency: z.enum(['weekly', 'monthly', 'quarterly']),
   start_date: z.string().min(1, 'Start date is required'),
-  amount: z.number().min(100, 'Amount must be at least $100'),
+  amount: z.coerce.number().min(100, 'Amount must be at least $100'),
 });
 
-function PaymentPlanForm({ onClose, onSuccess }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+type PlanFormData = z.infer<typeof planSchema>;
+
+interface PaymentPlanFormProps {
+  onClose: () => void;
+  onSuccess: (plan?: any) => void;
+}
+
+function PaymentPlanForm({ onClose, onSuccess }: PaymentPlanFormProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -22,7 +29,7 @@ function PaymentPlanForm({ onClose, onSuccess }) {
     watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(planSchema),
+    resolver: zodResolver(planSchema) as any,
     defaultValues: {
       frequency: 'monthly',
       start_date: new Date().toISOString().split('T')[0],
@@ -35,7 +42,7 @@ function PaymentPlanForm({ onClose, onSuccess }) {
 
   // Calculate plan details
   const getPlanDetails = () => {
-    if (!amount || amount <= 0) return null;
+    if (!amount || (amount as any) <= 0) return null;
 
     let numPayments, intervalText;
 
@@ -57,7 +64,7 @@ function PaymentPlanForm({ onClose, onSuccess }) {
         intervalText = '1 payment';
     }
 
-    const installmentAmount = amount / numPayments;
+    const installmentAmount = Number(amount) / numPayments;
 
     return {
       numPayments,
@@ -68,15 +75,15 @@ function PaymentPlanForm({ onClose, onSuccess }) {
 
   const planDetails = getPlanDetails();
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     try {
       setIsLoading(true);
       setError(null);
 
       const result = await paymentPlanAPI.createPlan(
-        data.frequency,
+        data.frequency as any,
         data.start_date,
-        parseFloat(data.amount)
+        Number(data.amount)
       );
 
       if (result.success) {
@@ -85,7 +92,7 @@ function PaymentPlanForm({ onClose, onSuccess }) {
         setError('Failed to create payment plan');
         setIsLoading(false);
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create payment plan');
       setIsLoading(false);
     }
@@ -209,9 +216,9 @@ function PaymentPlanForm({ onClose, onSuccess }) {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !amount || amount < 100}
+              disabled={isLoading || !amount || Number(amount) < 100}
               className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
-                isLoading || !amount || amount < 100
+                isLoading || !amount || Number(amount) < 100
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}

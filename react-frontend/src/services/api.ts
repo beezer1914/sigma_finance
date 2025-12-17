@@ -1,4 +1,22 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import type {
+  LoginResponse,
+  RegisterResponse,
+  CreateCheckoutResponse,
+  CreatePlanResponse,
+  DashboardData,
+  Payment,
+  TreasurerStats,
+  User,
+  UpdateMemberRequest,
+  CreateInviteRequest,
+  CreateInviteResponse,
+  InviteCode,
+  Donation,
+  CreateDonationRequest,
+  PaymentFrequency,
+  PaymentType,
+} from '../types';
 
 // Create axios instance with default configuration
 const api = axios.create({
@@ -12,7 +30,7 @@ const api = axios.create({
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Unauthorized - user needs to login
       // The auth store will handle this
@@ -26,13 +44,18 @@ api.interceptors.response.use(
 // ============================================================================
 
 export const authAPI = {
-  login: async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
+  login: async (email: string, password: string): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>('/auth/login', { email, password });
     return response.data;
   },
 
-  register: async (name, email, password, invite_code) => {
-    const response = await api.post('/auth/register', {
+  register: async (
+    name: string,
+    email: string,
+    password: string,
+    invite_code: string
+  ): Promise<RegisterResponse> => {
+    const response = await api.post<RegisterResponse>('/auth/register', {
       name,
       email,
       password,
@@ -41,13 +64,13 @@ export const authAPI = {
     return response.data;
   },
 
-  logout: async () => {
-    const response = await api.post('/auth/logout');
+  logout: async (): Promise<{ success: boolean }> => {
+    const response = await api.post<{ success: boolean }>('/auth/logout');
     return response.data;
   },
 
-  getCurrentUser: async () => {
-    const response = await api.get('/auth/user');
+  getCurrentUser: async (): Promise<{ user: User }> => {
+    const response = await api.get<{ user: User }>('/auth/user');
     return response.data;
   },
 };
@@ -57,8 +80,8 @@ export const authAPI = {
 // ============================================================================
 
 export const dashboardAPI = {
-  getDashboardData: async () => {
-    const response = await api.get('/dashboard');
+  getDashboardData: async (): Promise<DashboardData> => {
+    const response = await api.get<DashboardData>('/dashboard');
     return response.data;
   },
 };
@@ -69,16 +92,20 @@ export const dashboardAPI = {
 
 export const paymentAPI = {
   // Get payment history with pagination
-  getPayments: async (limit = 50, offset = 0) => {
-    const response = await api.get('/payments', {
+  getPayments: async (limit = 50, offset = 0): Promise<{ payments: Payment[] }> => {
+    const response = await api.get<{ payments: Payment[] }>('/payments', {
       params: { limit, offset },
     });
     return response.data;
   },
 
   // Create Stripe checkout session
-  createCheckoutSession: async (amount, payment_type = 'one-time', notes = '') => {
-    const response = await api.post('/payments/create-checkout', {
+  createCheckoutSession: async (
+    amount: number,
+    payment_type: PaymentType = 'one-time',
+    notes = ''
+  ): Promise<CreateCheckoutResponse> => {
+    const response = await api.post<CreateCheckoutResponse>('/payments/create-checkout', {
       amount,
       payment_type,
       notes,
@@ -93,8 +120,12 @@ export const paymentAPI = {
 
 export const paymentPlanAPI = {
   // Create a new payment plan
-  createPlan: async (frequency, start_date, amount) => {
-    const response = await api.post('/payment-plans', {
+  createPlan: async (
+    frequency: PaymentFrequency,
+    start_date: string,
+    amount: number
+  ): Promise<CreatePlanResponse> => {
+    const response = await api.post<CreatePlanResponse>('/payment-plans', {
       frequency,
       start_date,
       amount,
@@ -109,8 +140,8 @@ export const paymentPlanAPI = {
 
 export const profileAPI = {
   // Update user profile
-  updateProfile: async (data) => {
-    const response = await api.put('/profile', data);
+  updateProfile: async (data: Partial<User> & { current_password?: string; new_password?: string }): Promise<{ success: boolean; user: User }> => {
+    const response = await api.put<{ success: boolean; user: User }>('/profile', data);
     return response.data;
   },
 };
@@ -121,37 +152,43 @@ export const profileAPI = {
 
 export const treasurerAPI = {
   // Get dashboard statistics
-  getStats: async () => {
-    const response = await api.get('/treasurer/stats');
+  getStats: async (): Promise<TreasurerStats> => {
+    const response = await api.get<TreasurerStats>('/treasurer/stats');
     return response.data;
   },
 
   // Get all members with filtering
-  getMembers: async (params = {}) => {
-    const response = await api.get('/treasurer/members', { params });
+  getMembers: async (params: Record<string, any> = {}): Promise<{ members: User[] }> => {
+    const response = await api.get<{ members: User[] }>('/treasurer/members', { params });
     return response.data;
   },
 
   // Get single member details
-  getMemberDetail: async (userId) => {
-    const response = await api.get(`/treasurer/members/${userId}`);
+  getMemberDetail: async (userId: number): Promise<{ user: User }> => {
+    const response = await api.get<{ user: User }>(`/treasurer/members/${userId}`);
     return response.data;
   },
 
   // Update member details
-  updateMember: async (userId, data) => {
-    const response = await api.put(`/treasurer/members/${userId}`, data);
+  updateMember: async (
+    userId: number,
+    data: UpdateMemberRequest
+  ): Promise<{ success: boolean; user: User }> => {
+    const response = await api.put<{ success: boolean; user: User }>(
+      `/treasurer/members/${userId}`,
+      data
+    );
     return response.data;
   },
 
   // Get all payments (treasurer view)
-  getAllPayments: async (params = {}) => {
-    const response = await api.get('/treasurer/payments', { params });
+  getAllPayments: async (params: Record<string, any> = {}): Promise<{ payments: Payment[] }> => {
+    const response = await api.get<{ payments: Payment[] }>('/treasurer/payments', { params });
     return response.data;
   },
 
   // Get reports summary
-  getReportsSummary: async () => {
+  getReportsSummary: async (): Promise<any> => {
     const response = await api.get('/treasurer/reports/summary');
     return response.data;
   },
@@ -163,20 +200,25 @@ export const treasurerAPI = {
 
 export const donationsAPI = {
   // Get donations list with filtering and pagination
-  getDonations: async (params = {}) => {
-    const response = await api.get('/donations', { params });
+  getDonations: async (params: Record<string, any> = {}): Promise<{ donations: Donation[] }> => {
+    const response = await api.get<{ donations: Donation[] }>('/donations', { params });
     return response.data;
   },
 
   // Get donations summary statistics
-  getSummary: async () => {
+  getSummary: async (): Promise<any> => {
     const response = await api.get('/donations/summary');
     return response.data;
   },
 
   // Create a manual donation entry
-  createDonation: async (donationData) => {
-    const response = await api.post('/donations', donationData);
+  createDonation: async (
+    donationData: CreateDonationRequest
+  ): Promise<{ success: boolean; donation: Donation }> => {
+    const response = await api.post<{ success: boolean; donation: Donation }>(
+      '/donations',
+      donationData
+    );
     return response.data;
   },
 };
@@ -187,26 +229,26 @@ export const donationsAPI = {
 
 export const invitesAPI = {
   // Get all invite codes with filtering and pagination
-  getInvites: async (params = {}) => {
-    const response = await api.get('/invites', { params });
+  getInvites: async (params: Record<string, any> = {}): Promise<{ invites: InviteCode[] }> => {
+    const response = await api.get<{ invites: InviteCode[] }>('/invites', { params });
     return response.data;
   },
 
   // Get invite statistics
-  getStats: async () => {
+  getStats: async (): Promise<any> => {
     const response = await api.get('/invites/stats');
     return response.data;
   },
 
   // Create a new invite code
-  createInvite: async (inviteData) => {
-    const response = await api.post('/invites', inviteData);
+  createInvite: async (inviteData: CreateInviteRequest): Promise<CreateInviteResponse> => {
+    const response = await api.post<CreateInviteResponse>('/invites', inviteData);
     return response.data;
   },
 
   // Delete an unused invite code
-  deleteInvite: async (inviteId) => {
-    const response = await api.delete(`/invites/${inviteId}`);
+  deleteInvite: async (inviteId: number): Promise<{ success: boolean }> => {
+    const response = await api.delete<{ success: boolean }>(`/invites/${inviteId}`);
     return response.data;
   },
 };

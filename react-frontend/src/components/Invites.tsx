@@ -46,7 +46,7 @@ function Invites() {
       setLoading(true);
       setError(null);
 
-      const params = {};
+      const params: any = {};
       if (statusFilter) params.status = statusFilter;
 
       const [invitesData, statsData] = await Promise.all([
@@ -56,7 +56,7 @@ function Invites() {
 
       setInvites(invitesData.invites);
       setStats(statsData.stats);
-    } catch (err) {
+    } catch (err: any) {
       if (err.response?.status === 403) {
         navigate('/dashboard');
       } else {
@@ -79,7 +79,7 @@ function Invites() {
 
     try {
       setCreating(true);
-      const response = await invitesAPI.createInvite(newInvite);
+      const response = await invitesAPI.createInvite(newInvite as any);
 
       setCreatedInvite(response.invite);
       setSuccess(response.message);

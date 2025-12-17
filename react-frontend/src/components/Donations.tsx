@@ -262,7 +262,7 @@ function Donations() {
           <Card>
             <h3 className="text-lg font-bold text-gray-900 mb-4">Donations by Method</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(summary.by_method).map(([method, data]) => (
+              {Object.entries(summary.by_method).map(([method, data]: [string, any]) => (
                 <div key={method} className="text-center p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-600 capitalize">{method}</p>
                   <p className="text-xl font-bold text-gray-900">{data.count}</p>

@@ -24,9 +24,9 @@ function TreasurerDashboard() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await treasurerAPI.getStats();
-        setStats(data.stats);
-      } catch (err) {
+        const data: any = await treasurerAPI.getStats();
+        setStats(data.stats || data);
+      } catch (err: any) {
         if (err.response?.status === 403) {
           navigate('/dashboard');
         } else {
