@@ -24,18 +24,18 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
     const fetchMemberDetail = async () => {
       try {
         setLoading(true);
-        const data = await treasurerAPI.getMemberDetail(memberId);
+        const data: any = await treasurerAPI.getMemberDetail(memberId);
         setMember(data);
         // Initialize form data with member details
         setFormData({
-          name: data.member?.name || '',
-          email: data.member?.email || '',
-          role: data.member?.role || '',
-          active: data.member?.active ?? true,
-          financial_status: data.member?.financial_status || '',
-          initiation_date: data.member?.initiation_date || '',
+          name: data.user?.name || '',
+          email: data.user?.email || '',
+          role: data.user?.role || '',
+          active: data.user?.active ?? true,
+          financial_status: data.user?.financial_status || '',
+          initiation_date: data.user?.initiation_date || '',
         });
-      } catch (err) {
+      } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load member details');
       } finally {
         setLoading(false);
@@ -59,12 +59,12 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
     setSuccessMessage('');
     // Reset form data to original member data
     setFormData({
-      name: member?.member?.name || '',
-      email: member?.member?.email || '',
-      role: member?.member?.role || '',
-      active: member?.member?.active ?? true,
-      financial_status: member?.member?.financial_status || '',
-      initiation_date: member?.member?.initiation_date || '',
+      name: (member as any)?.user?.name || '',
+      email: (member as any)?.user?.email || '',
+      role: (member as any)?.user?.role || '',
+      active: (member as any)?.user?.active ?? true,
+      financial_status: (member as any)?.user?.financial_status || '',
+      initiation_date: (member as any)?.user?.initiation_date || '',
     });
   };
 
@@ -72,8 +72,8 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
     try {
       setSaving(true);
       setError(null);
-      const updatedData = await treasurerAPI.updateMember(memberId, formData);
-      setMember({ ...member, member: updatedData.member });
+      const updatedData: any = await treasurerAPI.updateMember(memberId, formData as any);
+      setMember({ ...member, user: updatedData.user });
       setSuccessMessage('Member updated successfully!');
       setIsEditMode(false);
       // Call onUpdate callback if provided to refresh parent component

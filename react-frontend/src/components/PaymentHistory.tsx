@@ -2,17 +2,31 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
 import { paymentAPI } from '../services/api';
+import type { Payment } from '../types';
 import Header from './Header';
 import Card from './Card';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
+interface Pagination {
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
+interface Filters {
+  paymentType: string;
+  method: string;
+  dateRange: string;
+}
+
 function PaymentHistory() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<Pagination>({
     total: 0,
     limit: 20,
     offset: 0,
@@ -20,7 +34,7 @@ function PaymentHistory() {
   });
 
   // Filter state
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     paymentType: 'all',
     method: 'all',
     dateRange: 'all',
@@ -29,7 +43,7 @@ function PaymentHistory() {
   const fetchPayments = async (offset = 0) => {
     try {
       setLoading(true);
-      const data = await paymentAPI.getPayments(pagination.limit, offset);
+      const data: any = await paymentAPI.getPayments(pagination.limit, offset);
       setPayments(data.payments);
       setPagination({
         total: data.pagination.total,
@@ -37,7 +51,7 @@ function PaymentHistory() {
         offset: data.pagination.offset,
         hasMore: data.pagination.has_more,
       });
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load payment history');
     } finally {
       setLoading(false);
@@ -98,7 +112,7 @@ function PaymentHistory() {
 
   // Calculate totals
   const totalAmount = filteredPayments.reduce(
-    (sum, p) => sum + parseFloat(p.amount),
+    (sum, p) => sum + parseFloat(String(p.amount)),
     0
   );
 

@@ -22,16 +22,18 @@ const registerSchema = z.object({
   path: ['confirmPassword'],
 });
 
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 function Register() {
   const navigate = useNavigate();
   const { register: registerUser, isAuthenticated, isLoading, error, clearError } = useAuthStore();
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
@@ -55,7 +57,7 @@ function Register() {
   // Debug: Log on every render
   console.log('Register component rendering, successMessage:', successMessage, 'error:', error);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: RegisterFormData) => {
     // Clear any previous errors and success messages
     clearError();
     setSuccessMessage('');
@@ -98,7 +100,6 @@ function Register() {
 
         {successMessage && (
           <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-            {console.log('Rendering success message div:', successMessage)}
             {successMessage}
           </div>
         )}

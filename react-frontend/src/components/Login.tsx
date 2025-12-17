@@ -11,6 +11,8 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+type LoginFormData = z.infer<typeof loginSchema>;
+
 function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
@@ -19,7 +21,7 @@ function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -30,7 +32,7 @@ function Login() {
     }
   }, [isAuthenticated, navigate]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: LoginFormData) => {
     const result = await login(data.email, data.password);
     if (result.success) {
       navigate('/dashboard');

@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
 
-function Header({ onLogout }) {
+interface HeaderProps {
+  onLogout: () => void;
+}
+
+function Header({ onLogout }: HeaderProps) {
   const { user } = useAuthStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path: string): boolean => location.pathname === path;
 
   // Role-based access helpers
   const hasFullAccess = () => ['admin', 'treasurer', 'president', 'vice_1'].includes(user?.role);
