@@ -3,17 +3,26 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { paymentAPI } from '../services/api';
+import type { PaymentType } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
 // Validation schema
 const paymentSchema = z.object({
-  amount: z.number().min(1, 'Amount must be at least $1'),
+  amount: z.coerce.number().min(1, 'Amount must be at least $1'),
   notes: z.string().optional(),
 });
 
-function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+type PaymentFormData = z.infer<typeof paymentSchema>;
+
+interface PaymentFormProps {
+  onClose: () => void;
+  onSuccess: () => void;
+  paymentType?: PaymentType;
+}
+
+function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }: PaymentFormProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -21,7 +30,7 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
     watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(paymentSchema),
+    resolver: zodResolver(paymentSchema) as any,
     defaultValues: {
       amount: '',
       notes: '',
@@ -31,25 +40,25 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
   const amount = watch('amount');
 
   // Calculate Stripe fees
-  const calculateFees = (amt) => {
+  const calculateFees = (amt: number): number => {
     if (!amt || amt <= 0) return 0;
-    const amountNum = parseFloat(amt);
+    const amountNum = Number(amt);
     const feePercentage = 0.029; // 2.9%
     const fixedFee = 0.30;
     const totalWithFees = (amountNum + fixedFee) / (1 - feePercentage);
     return totalWithFees - amountNum;
   };
 
-  const stripeFee = calculateFees(amount);
-  const totalAmount = amount ? parseFloat(amount) + stripeFee : 0;
+  const stripeFee = calculateFees(amount as any);
+  const totalAmount = amount ? Number(amount) + stripeFee : 0;
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     try {
       setIsLoading(true);
       setError(null);
 
       const result = await paymentAPI.createCheckoutSession(
-        parseFloat(data.amount),
+        Number(data.amount),
         paymentType,
         data.notes
       );
@@ -60,7 +69,7 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
       } else {
         setError('Failed to create checkout session');
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Payment failed');
       setIsLoading(false);
     }
@@ -113,7 +122,7 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
             )}
           </div>
 
-          {amount > 0 && (
+          {Number(amount) > 0 && (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Payment Amount:</span>
@@ -142,7 +151,7 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
             <textarea
               id="notes"
               {...register('notes')}
-              rows="3"
+              rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Add any notes about this payment..."
             ></textarea>
@@ -158,9 +167,9 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }) {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !amount || amount <= 0}
+              disabled={isLoading || !amount || Number(amount) <= 0}
               className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
-                isLoading || !amount || amount <= 0
+                isLoading || !amount || Number(amount) <= 0
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}

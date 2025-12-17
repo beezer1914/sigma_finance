@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
 import { treasurerAPI } from '../services/api';
+import type { User } from '../types';
 import Header from './Header';
 import Card from './Card';
 import MemberDetailModal from './MemberDetailModal';
@@ -10,9 +11,9 @@ import { formatCurrency, getStatusColor } from '../utils/formatters';
 function Members() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [members, setMembers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     total: 0,
     limit: 20,
@@ -44,7 +45,7 @@ function Members() {
         ...(filters.hasPlan !== 'all' && { has_plan: filters.hasPlan }),
       };
 
-      const data = await treasurerAPI.getMembers(params);
+      const data: any = await treasurerAPI.getMembers(params);
       setMembers(data.members);
       setPagination({
         total: data.pagination.total,
@@ -52,7 +53,7 @@ function Members() {
         offset: data.pagination.offset,
         hasMore: data.pagination.has_more,
       });
-    } catch (err) {
+    } catch (err: any) {
       if (err.response?.status === 403) {
         navigate('/dashboard');
       } else {

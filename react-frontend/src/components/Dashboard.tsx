@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
 import { dashboardAPI } from '../services/api';
+import type { DashboardData, PaymentType } from '../types';
 import Header from './Header';
 import Card from './Card';
 import PaymentForm from './PaymentForm';
@@ -11,12 +12,12 @@ import { formatCurrency, formatDate, getStatusColor } from '../utils/formatters'
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [showPlanForm, setShowPlanForm] = useState(false);
-  const [paymentType, setPaymentType] = useState('one-time');
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState<boolean>(false);
+  const [showPlanForm, setShowPlanForm] = useState<boolean>(false);
+  const [paymentType, setPaymentType] = useState<PaymentType>('one-time');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -24,7 +25,7 @@ function Dashboard() {
         setLoading(true);
         const data = await dashboardAPI.getDashboardData();
         setDashboardData(data);
-      } catch (err) {
+      } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load dashboard data');
       } finally {
         setLoading(false);
@@ -39,7 +40,7 @@ function Dashboard() {
     navigate('/login');
   };
 
-  const handleMakePayment = (type = 'one-time') => {
+  const handleMakePayment = (type: PaymentType = 'one-time') => {
     setPaymentType(type);
     setShowPaymentForm(true);
   };

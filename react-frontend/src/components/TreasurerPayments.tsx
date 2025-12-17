@@ -35,7 +35,7 @@ function TreasurerPayments() {
         ...(filters.method !== 'all' && { method: filters.method }),
       };
 
-      const data = await treasurerAPI.getAllPayments(params);
+      const data: any = await treasurerAPI.getAllPayments(params);
       setPayments(data.payments);
       setPagination({
         total: data.pagination.total,
@@ -43,7 +43,7 @@ function TreasurerPayments() {
         offset: data.pagination.offset,
         hasMore: data.pagination.has_more,
       });
-    } catch (err) {
+    } catch (err: any) {
       if (err.response?.status === 403) {
         navigate('/dashboard');
       } else {
