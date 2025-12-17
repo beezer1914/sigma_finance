@@ -9,27 +9,27 @@ import { formatDate, getStatusColor } from '../utils/formatters';
 function Profile() {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuthStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState<string>(user?.name || '');
+  const [email, setEmail] = useState<string>(user?.email || '');
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
 
   // Track which section is being edited
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [editingPassword, setEditingPassword] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<boolean>(false);
+  const [editingPassword, setEditingPassword] = useState<boolean>(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
-  const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -50,14 +50,14 @@ function Profile() {
       updateUser(response.user);
       setSuccess('Profile updated successfully');
       setEditingProfile(false);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePassword = async (e) => {
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -93,7 +93,7 @@ function Profile() {
       setNewPassword('');
       setConfirmPassword('');
       setEditingPassword(false);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to change password');
     } finally {
       setLoading(false);

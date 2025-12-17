@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { authAPI } from '../services/api';
+import type { AuthState } from '../types';
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -39,7 +40,7 @@ const useAuthStore = create((set) => ({
         error: null,
       });
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       // Enhanced error handling for all HTTP error codes (including 429)
       let errorMessage = 'Login failed';
 
@@ -77,7 +78,7 @@ const useAuthStore = create((set) => ({
         error: null,
       });
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       // Enhanced error handling for all HTTP error codes (including 429)
       let errorMessage = 'Registration failed';
 
@@ -112,7 +113,7 @@ const useAuthStore = create((set) => ({
         error: null,
       });
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       // Even if API call fails, clear local state
       set({
         user: null,
