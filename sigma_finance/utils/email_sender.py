@@ -21,7 +21,7 @@ def send_payment_reminder(to_email, name, due_date, amount, frequency='monthly')
         html_content=f"""
         <p>Hi {safe_name},</p>
         <p>This is your <strong>{frequency}</strong> reminder that your dues payment of <strong>${amount}</strong> is due by <strong>{due_date.strftime('%B %d, %Y')}</strong>.</p>
-        <p>Please log in to your dashboard to complete your payment: <a href="https://sds1914.com">https://sds1914.com</a></p>
+        <p>Please log in to your dashboard to complete your payment: <a href="https://sigma-finance-63gn.onrender.com/login">https://sigma-finance-63gn.onrender.com/login</a></p>
         <p>Thank you for staying financially active with Sigma Delta Sigma!</p>
         <p style="margin-top: 20px; font-size: 12px; color: #666;">
         Questions? Contact the treasurer at treasurer@sds1914.com
