@@ -66,11 +66,12 @@ def send_reminders(test_mode=False, override_email=None):
     sent_count = 0
 
     for plan in plans:
+        user = plan.user  # Get user first, before checking next_due
+
         # Calculate if reminder is due for this plan
         next_due = calculate_next_due_date(plan, today)
 
         if next_due:
-            user = plan.user
             recipient = override_email if test_mode else user.email
 
             send_payment_reminder(
