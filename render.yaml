@@ -16,11 +16,7 @@ services:
       echo "----> Installing Python dependencies..." &&
       pip install -r requirements.txt &&
       echo "----> Verifying React build exists at runtime path:" &&
-      ls -la react-frontend/dist/
-    releaseCommand: |
-      echo "----> PWD: $(pwd)" &&
-      echo "----> Checking React build:" &&
-      ls -la react-frontend/dist/ 2>/dev/null || echo "React dist NOT FOUND!" &&
+      ls -la react-frontend/dist/ &&
       echo "----> running Postgres migrations…" &&
       flask db upgrade
     startCommand: gunicorn sigma_finance.wsgi:app
