@@ -353,6 +353,10 @@ def sendgrid_webhook():
     """
     SendGrid Event Webhook handler to track email delivery and engagement.
 
+    Security features:
+    - Signature verification using SendGrid public key
+    - Timestamp validation to prevent replay attacks
+
     Tracks events:
     - processed: Email received by SendGrid
     - delivered: Email successfully delivered
@@ -366,6 +370,43 @@ def sendgrid_webhook():
     See: https://docs.sendgrid.com/for-developers/tracking-events/event
     """
     current_app.logger.info("📧 SendGrid webhook received")
+
+    # SECURITY CHECK: Verify SendGrid signature (if configured)
+    verification_key = current_app.config.get("SENDGRID_WEBHOOK_VERIFICATION_KEY")
+
+    if verification_key:
+        try:
+            from sendgrid.helpers.eventwebhook import EventWebhook, EventWebhookHeader
+
+            payload = request.get_data(as_text=True)
+            signature = request.headers.get(EventWebhookHeader.SIGNATURE.value)
+            timestamp = request.headers.get(EventWebhookHeader.TIMESTAMP.value)
+
+            if not signature or not timestamp:
+                current_app.logger.error("❌ Missing signature or timestamp headers")
+                return "Missing security headers", 401
+
+            event_webhook = EventWebhook()
+            ec_public_key = event_webhook.convert_public_key_to_ecdsa(verification_key)
+
+            verified = event_webhook.verify_signature(
+                ec_public_key,
+                payload,
+                signature,
+                timestamp
+            )
+
+            if not verified:
+                current_app.logger.error("❌ Invalid SendGrid signature")
+                return "Invalid signature", 403
+
+            current_app.logger.info("✅ SendGrid signature verified")
+
+        except Exception as e:
+            current_app.logger.error(f"❌ Signature verification error: {e}")
+            return "Signature verification failed", 403
+    else:
+        current_app.logger.warning("⚠️ SendGrid webhook verification key not configured - running without signature verification")
 
     try:
         events = request.get_json()
