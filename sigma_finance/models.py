@@ -356,3 +356,49 @@ class TopDonorsView(db.Model):
     last_donation_date = db.Column('last_donation_date', db.DateTime)
     has_anonymous_donations = db.Column('has_anonymous_donations', db.Boolean)
     donor_level = db.Column('donor_level', db.String(20))
+
+
+class EmailEvent(db.Model):
+    """
+    Track SendGrid email events (sent, delivered, opened, clicked, bounced, etc.)
+    Used to monitor payment reminder emails and other system notifications.
+    """
+    __tablename__ = 'email_event'
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.String(255), unique=True, nullable=False, index=True)  # SendGrid event ID
+    email = db.Column(db.String(120), nullable=False, index=True)  # Recipient email
+    event_type = db.Column(db.String(50), nullable=False, index=True)  # processed, delivered, opened, etc.
+    timestamp = db.Column(db.DateTime, nullable=False, index=True)  # When event occurred
+    subject = db.Column(db.String(255))  # Email subject
+    category = db.Column(db.String(100))  # e.g., 'payment_reminder', 'invite', etc.
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Link to user if applicable
+
+    # Additional metadata
+    smtp_id = db.Column(db.String(255))  # SendGrid SMTP ID
+    response = db.Column(db.Text)  # Server response (for bounces)
+    reason = db.Column(db.String(255))  # Bounce/drop reason
+    url = db.Column(db.String(500))  # Clicked URL (for click events)
+    ip = db.Column(db.String(45))  # IP address of recipient
+    user_agent = db.Column(db.String(500))  # User agent (for opens/clicks)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'event_id': self.event_id,
+            'email': self.email,
+            'event_type': self.event_type,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'subject': self.subject,
+            'category': self.category,
+            'user_id': self.user_id,
+            'smtp_id': self.smtp_id,
+            'response': self.response,
+            'reason': self.reason,
+            'url': self.url,
+            'ip': self.ip,
+            'user_agent': self.user_agent,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
