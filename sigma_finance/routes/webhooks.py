@@ -4,7 +4,7 @@ from decimal import Decimal
 import stripe
 
 from sigma_finance.extensions import db, csrf
-from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan, Donation
+from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan, Donation, EmailEvent
 from sigma_finance.utils.status_updater import update_financial_status
 from sigma_finance.routes.payments import archive_plan_if_completed
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
@@ -345,3 +345,112 @@ def stripe_donation_webhook():
         db.session.commit()
 
     return "", 200
+
+
+@webhook_bp.route("/sendgrid", methods=["POST"])
+@csrf.exempt  # SendGrid webhooks don't have CSRF tokens
+def sendgrid_webhook():
+    """
+    SendGrid Event Webhook handler to track email delivery and engagement.
+
+    Tracks events:
+    - processed: Email received by SendGrid
+    - delivered: Email successfully delivered
+    - opened: Recipient opened the email
+    - click: Recipient clicked a link
+    - bounce: Email bounced
+    - dropped: SendGrid dropped the email
+    - spam_report: Marked as spam
+    - unsubscribe: Recipient unsubscribed
+
+    See: https://docs.sendgrid.com/for-developers/tracking-events/event
+    """
+    current_app.logger.info("📧 SendGrid webhook received")
+
+    try:
+        events = request.get_json()
+
+        if not events:
+            current_app.logger.error("❌ No events in SendGrid webhook")
+            return "No events", 400
+
+        # SendGrid sends events as an array
+        if not isinstance(events, list):
+            events = [events]
+
+        processed_count = 0
+
+        for event in events:
+            try:
+                # Extract event data
+                event_id = event.get('sg_event_id')
+                event_type = event.get('event')
+                email = event.get('email')
+                timestamp = event.get('timestamp')
+
+                # Get additional fields
+                subject = event.get('subject', '')
+                category = event.get('category', [''])[0] if event.get('category') else None
+                smtp_id = event.get('smtp-id')
+                response = event.get('response')
+                reason = event.get('reason')
+                url = event.get('url')
+                ip = event.get('ip')
+                user_agent = event.get('useragent')
+
+                # Validate required fields
+                if not event_id or not event_type or not email:
+                    current_app.logger.warning(f"⚠️ Missing required fields in event: {event}")
+                    continue
+
+                # Check for duplicate event
+                existing = EmailEvent.query.filter_by(event_id=event_id).first()
+                if existing:
+                    current_app.logger.info(f"⏭️ Duplicate email event: {event_id}")
+                    continue
+
+                # Try to link to user by email
+                user = User.query.filter_by(email=email).first()
+                user_id = user.id if user else None
+
+                # Convert timestamp to datetime
+                event_datetime = datetime.utcfromtimestamp(timestamp) if timestamp else datetime.utcnow()
+
+                # Create email event record
+                email_event = EmailEvent(
+                    event_id=event_id,
+                    email=email,
+                    event_type=event_type,
+                    timestamp=event_datetime,
+                    subject=subject,
+                    category=category,
+                    user_id=user_id,
+                    smtp_id=smtp_id,
+                    response=response,
+                    reason=reason,
+                    url=url,
+                    ip=ip,
+                    user_agent=user_agent
+                )
+
+                db.session.add(email_event)
+                processed_count += 1
+
+                current_app.logger.info(
+                    f"✅ Email event: {event_type} | {email} | {category or 'no category'}"
+                )
+
+            except Exception as e:
+                current_app.logger.error(f"❌ Error processing event: {e}", exc_info=True)
+                continue
+
+        # Commit all events
+        db.session.commit()
+        current_app.logger.info(f"📧 Processed {processed_count} SendGrid events")
+
+        return "", 200
+
+    except Exception as e:
+        current_app.logger.error(f"❌ SendGrid webhook error: {e}", exc_info=True)
+        db.session.rollback()
+        return "Internal server error", 500
