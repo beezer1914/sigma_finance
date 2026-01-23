@@ -18,7 +18,7 @@ services:
       echo "----> Verifying React build exists at runtime path:" &&
       ls -la react-frontend/dist/ &&
       echo "----> running Postgres migrations…" &&
-      flask db upgrade
+      FLASK_APP=sigma_finance.app flask db upgrade
     startCommand: gunicorn sigma_finance.wsgi:app
 
   - type: cron
