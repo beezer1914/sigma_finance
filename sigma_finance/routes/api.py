@@ -257,6 +257,128 @@ def logout():
     }), 200
 
 
+@api_bp.route("/auth/forgot-password", methods=["POST"])
+@limiter.limit("3 per hour")
+def forgot_password():
+    """
+    Request a password reset email.
+
+    Request JSON:
+        {
+            "email": "user@example.com"
+        }
+
+    Returns:
+        JSON with success message (always returns success for security)
+    """
+    from sigma_finance.utils.send_invite_email import send_email
+    from sigma_finance.utils.sanitize import sanitize_for_email
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    # Find user (but don't reveal if email exists)
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        # Generate reset token
+        token = user.get_reset_token()
+
+        # Send email with React frontend reset URL
+        from flask import current_app
+        reset_url = f"{current_app.config.get('FRONTEND_URL', 'https://sigma-finance-63gn.onrender.com')}/reset-password/{token}"
+
+        safe_name = sanitize_for_email(user.name)
+
+        subject = "Reset Your Sigma Finance Password"
+        plain_text = f"""Hi {safe_name},
+
+You requested a password reset. Click the link below to set a new password:
+{reset_url}
+
+This link will expire in 10 minutes.
+
+If you didn't request this, you can safely ignore it.
+"""
+
+        html_content = f"""
+            <p>Hi {safe_name},</p>
+            <p>You requested a password reset. Click below to set a new password:</p>
+            <p><a href="{reset_url}" style="display:inline-block;padding:10px 20px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:5px;">Reset Password</a></p>
+            <p>This link will expire in 10 minutes.</p>
+            <p>If you didn't request this, you can safely ignore it.</p>
+        """
+
+        send_email(subject, user.email, plain_text, html_content, from_email='treasurer@sds1914.com')
+
+    # Always return success to prevent email enumeration
+    return jsonify({
+        "success": True,
+        "message": "If your email is registered, you'll receive a reset link shortly."
+    }), 200
+
+
+@api_bp.route("/auth/reset-password", methods=["POST"])
+@limiter.limit("5 per hour")
+def reset_password():
+    """
+    Reset password using a valid token.
+
+    Request JSON:
+        {
+            "token": "reset_token_here",
+            "password": "new_password123"
+        }
+
+    Returns:
+        JSON with success status
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    token = data.get("token")
+    new_password = data.get("password")
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and password are required"}), 400
+
+    # Verify token and get user
+    user = User.verify_reset_token(token)
+
+    if not user:
+        return jsonify({"error": "Invalid or expired token"}), 400
+
+    # Validate password strength
+    is_valid, error_message = validate_password_strength(new_password)
+    if not is_valid:
+        return jsonify({"error": error_message}), 400
+
+    # Update password
+    try:
+        user.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Your password has been updated successfully"
+        }), 200
+
+    except Exception as e:
+        import logging
+        logging.error(f"Password reset error: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({"error": "An error occurred while resetting password"}), 500
+
+
 @api_bp.route("/auth/user", methods=["GET"])
 @login_required
 def get_current_user():
