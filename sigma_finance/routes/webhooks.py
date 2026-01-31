@@ -347,7 +347,7 @@ def stripe_donation_webhook():
     return "", 200
 
 
-@webhook_bp.route("/sendgrid", methods=["POST"])
+@webhook_bp.route("/webhook/sendgrid", methods=["POST"])
 @csrf.exempt  # SendGrid webhooks don't have CSRF tokens
 def sendgrid_webhook():
     """
