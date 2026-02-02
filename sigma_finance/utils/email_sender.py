@@ -1,6 +1,6 @@
 import os
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Category
 from sigma_finance.utils.sanitize import sanitize_for_email
 
 def send_payment_reminder(to_email, name, due_date, amount, frequency='monthly'):
@@ -30,7 +30,7 @@ def send_payment_reminder(to_email, name, due_date, amount, frequency='monthly')
     )
 
     # Add category for tracking in SendGrid webhooks
-    message.category = f'payment_reminder_{frequency}'
+    message.category = Category(f'payment_reminder_{frequency}')
     try:
         sg = SendGridAPIClient(os.getenv("SENDGRID_API_KEY"))
         response = sg.send(message)
