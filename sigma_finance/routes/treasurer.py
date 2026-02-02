@@ -150,13 +150,18 @@ def treasurer_edit_member(member_id):
     member = User.query.get_or_404(member_id)
 
     if request.method == "POST":
-        member.name = request.form["name"]
-        member.email = request.form["email"]
-        member.role = request.form["role"].lower()
+        # Only update fields if non-empty values are provided
+        if request.form.get("name"):
+            member.name = request.form["name"]
+        if request.form.get("email"):
+            member.email = request.form["email"]
+        if request.form.get("role"):
+            member.role = request.form["role"].lower()
         member.active = "is_active" in request.form
 
         submitted_status = request.form.get("financial_status")
-        member.financial_status = submitted_status.lower() if submitted_status else member.financial_status
+        if submitted_status:
+            member.financial_status = submitted_status.lower()
 
         initiation_date_raw = request.form.get("initiation_date")
         if initiation_date_raw:
