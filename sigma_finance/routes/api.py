@@ -967,11 +967,11 @@ def update_member(user_id):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    # Update basic fields
-    if "name" in data:
+    # Update basic fields - only if non-empty values provided
+    if data.get("name"):
         member.name = data["name"]
 
-    if "email" in data:
+    if data.get("email"):
         # Check if email is already taken by another user
         existing_user = User.query.filter(
             User.email.ilike(data["email"]),
@@ -981,7 +981,7 @@ def update_member(user_id):
             return jsonify({"error": "Email already in use"}), 400
         member.email = data["email"]
 
-    if "role" in data:
+    if data.get("role"):
         member.role = data["role"].lower()
 
     if "active" in data:
