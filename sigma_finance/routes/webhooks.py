@@ -2,6 +2,8 @@ from flask import Blueprint, request, current_app
 from datetime import datetime, timedelta
 from decimal import Decimal
 import stripe
+import os
+import requests
 
 from sigma_finance.extensions import db, csrf
 from sigma_finance.models import Payment, User, WebhookEvent, PaymentPlan, Donation, EmailEvent
@@ -10,6 +12,43 @@ from sigma_finance.routes.payments import archive_plan_if_completed
 from sigma_finance.services.stats import invalidate_payment_cache, invalidate_user_cache, invalidate_plan_cache
 
 webhook_bp = Blueprint("webhook", __name__)
+
+
+def send_discord_notification(event_type, email, category=None, reason=None):
+    """Send email event notification to Discord webhook."""
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        return
+
+    # Emoji mapping for different event types
+    emoji_map = {
+        "delivered": "✅",
+        "processed": "📤",
+        "opened": "👀",
+        "click": "🔗",
+        "bounce": "🔴",
+        "dropped": "⛔",
+        "spam_report": "🚨",
+        "unsubscribe": "🚫",
+        "deferred": "⏳",
+    }
+
+    emoji = emoji_map.get(event_type, "📧")
+
+    # Build the message
+    message = f"{emoji} **Email {event_type.upper()}**\n"
+    message += f"📬 To: `{email}`\n"
+    if category:
+        message += f"🏷️ Category: `{category}`\n"
+    if reason:
+        message += f"⚠️ Reason: {reason}\n"
+    message += f"🕐 {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+
+    try:
+        requests.post(webhook_url, json={"content": message}, timeout=5)
+    except Exception as e:
+        current_app.logger.error(f"Discord notification failed: {e}")
+
 
 @webhook_bp.route("/webhook", methods=["POST"])
 @csrf.exempt  # Stripe webhooks don't have CSRF tokens
@@ -480,6 +519,11 @@ def sendgrid_webhook():
                 current_app.logger.info(
                     f"✅ Email event: {event_type} | {email} | {category or 'no category'}"
                 )
+
+                # Send Discord notification for notable events
+                notable_events = ["delivered", "bounce", "dropped", "spam_report", "opened", "click"]
+                if event_type in notable_events:
+                    send_discord_notification(event_type, email, category, reason)
 
             except Exception as e:
                 current_app.logger.error(f"❌ Error processing event: {e}", exc_info=True)
