@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
+import { useRecaptcha } from '../hooks/useRecaptcha';
 
 // Validation schema
 const loginSchema = z.object({
@@ -16,6 +17,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const { executeRecaptcha } = useRecaptcha();
 
   const {
     register,
@@ -33,7 +35,10 @@ function Login() {
   }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
-    const result = await login(data.email, data.password);
+    // Get reCAPTCHA token
+    const recaptchaToken = await executeRecaptcha('login');
+
+    const result = await login(data.email, data.password, recaptchaToken);
     if (result.success) {
       navigate('/dashboard');
     }

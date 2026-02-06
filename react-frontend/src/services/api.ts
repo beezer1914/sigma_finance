@@ -44,8 +44,12 @@ api.interceptors.response.use(
 // ============================================================================
 
 export const authAPI = {
-  login: async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>('/auth/login', { email, password });
+  login: async (email: string, password: string, recaptcha_token?: string | null): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>('/auth/login', {
+      email,
+      password,
+      recaptcha_token: recaptcha_token || undefined,
+    });
     return response.data;
   },
 
@@ -53,13 +57,15 @@ export const authAPI = {
     name: string,
     email: string,
     password: string,
-    invite_code: string
+    invite_code: string,
+    recaptcha_token?: string | null
   ): Promise<RegisterResponse> => {
     const response = await api.post<RegisterResponse>('/auth/register', {
       name,
       email,
       password,
       invite_code,
+      recaptcha_token: recaptcha_token || undefined,
     });
     return response.data;
   },

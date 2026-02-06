@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
+import { useRecaptcha } from '../hooks/useRecaptcha';
 
 // Validation schema
 const registerSchema = z.object({
@@ -28,6 +29,7 @@ function Register() {
   const navigate = useNavigate();
   const { register: registerUser, isAuthenticated, isLoading, error, clearError } = useAuthStore();
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const { executeRecaptcha } = useRecaptcha();
 
   const {
     register,
@@ -62,12 +64,16 @@ function Register() {
     clearError();
     setSuccessMessage('');
 
+    // Get reCAPTCHA token
+    const recaptchaToken = await executeRecaptcha('register');
+
     console.log('Submitting registration...');
     const result = await registerUser(
       data.name,
       data.email,
       data.password,
-      data.invite_code
+      data.invite_code,
+      recaptchaToken
     );
 
     console.log('Registration result:', result);
