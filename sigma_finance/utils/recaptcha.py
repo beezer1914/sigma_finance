@@ -37,9 +37,11 @@ def verify_recaptcha(token: str, action: str = None) -> dict:
         current_app.logger.warning("RECAPTCHA_SECRET_KEY not configured, skipping verification")
         return {"success": True, "score": 1.0, "action": action, "skipped": True}
 
-    # If no token provided, fail verification
+    # If no token provided, skip verification (frontend may not be configured yet)
+    # This allows gradual rollout - reCAPTCHA is only enforced when frontend sends tokens
     if not token:
-        return {"success": False, "score": 0.0, "error": "No reCAPTCHA token provided"}
+        current_app.logger.warning("No reCAPTCHA token provided, skipping verification")
+        return {"success": True, "score": 1.0, "action": action, "skipped": True}
 
     try:
         response = requests.post(
