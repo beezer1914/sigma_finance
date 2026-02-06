@@ -99,7 +99,9 @@ def create_app():
                     "'self'",
                     "'unsafe-inline'",  # Needed for inline JS
                     'https://js.stripe.com',
-                    'https://cdnjs.cloudflare.com'
+                    'https://cdnjs.cloudflare.com',
+                    'https://www.google.com',
+                    'https://www.gstatic.com'  # reCAPTCHA
                 ],
                 'style-src': [
                     "'self'",
@@ -121,7 +123,8 @@ def create_app():
                 'frame-src': [
                     "'self'",
                     'https://js.stripe.com',
-                    'https://hooks.stripe.com'
+                    'https://hooks.stripe.com',
+                    'https://www.google.com'  # reCAPTCHA
                 ]
             },
             # Note: Removed nonce requirement - React bundles don't use CSP nonces
