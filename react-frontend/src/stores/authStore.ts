@@ -29,10 +29,10 @@ const useAuthStore = create<AuthState>((set) => ({
   },
 
   // Login action
-  login: async (email, password) => {
+  login: async (email, password, recaptcha_token?: string | null) => {
     try {
       set({ isLoading: true });
-      const data = await authAPI.login(email, password);
+      const data = await authAPI.login(email, password, recaptcha_token);
       set({
         user: data.user,
         isAuthenticated: true,
@@ -66,10 +66,10 @@ const useAuthStore = create<AuthState>((set) => ({
   },
 
   // Register action
-  register: async (name, email, password, invite_code) => {
+  register: async (name, email, password, invite_code, recaptcha_token?: string | null) => {
     try {
       set({ isLoading: true });
-      const data = await authAPI.register(name, email, password, invite_code);
+      const data = await authAPI.register(name, email, password, invite_code, recaptcha_token);
       // User is now automatically logged in after registration
       set({
         user: data.user,

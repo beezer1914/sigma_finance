@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sigma_finance.extensions import db, limiter
 from sigma_finance.utils.password_validator import validate_password_strength
+from sigma_finance.utils.recaptcha import verify_recaptcha
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -114,9 +115,15 @@ def login():
 
     email = data.get("email")
     password = data.get("password")
+    recaptcha_token = data.get("recaptcha_token")
 
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
+
+    # Verify reCAPTCHA token
+    recaptcha_result = verify_recaptcha(recaptcha_token, action="login")
+    if not recaptcha_result.get("success"):
+        return jsonify({"error": recaptcha_result.get("error", "reCAPTCHA verification failed")}), 403
 
     # Prevent timing attacks by always performing hash operation
     user = User.query.filter_by(email=email).first()
@@ -172,10 +179,16 @@ def register():
     email = data.get("email")
     password = data.get("password")
     invite_code = data.get("invite_code")
+    recaptcha_token = data.get("recaptcha_token")
 
     # Validation
     if not all([name, email, password, invite_code]):
         return jsonify({"error": "All fields are required"}), 400
+
+    # Verify reCAPTCHA token
+    recaptcha_result = verify_recaptcha(recaptcha_token, action="register")
+    if not recaptcha_result.get("success"):
+        return jsonify({"error": recaptcha_result.get("error", "reCAPTCHA verification failed")}), 403
 
     # Check if email already exists
     existing_user = User.query.filter_by(email=email).first()
