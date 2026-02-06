@@ -5,8 +5,11 @@ services:
     envVars:
       - key: FLASK_APP
         value: sigma_finance.app
+      - key: VITE_RECAPTCHA_SITE_KEY
+        sync: false  # Pull value from Render dashboard
     buildCommand: |
       echo "----> Building React frontend..." &&
+      echo "----> VITE_RECAPTCHA_SITE_KEY is set: $([ -n \"$VITE_RECAPTCHA_SITE_KEY\" ] && echo 'YES' || echo 'NO')" &&
       cd react-frontend &&
       npm install &&
       npm run build &&
