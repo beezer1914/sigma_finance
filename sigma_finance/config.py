@@ -34,6 +34,7 @@ class BaseConfig:
     # Email
     SENDGRID_API_KEY = read_render_secret("SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL = read_render_secret("DEFAULT_FROM_EMAIL") or "no-reply@sds1914.com"
+    SENDGRID_WEBHOOK_VERIFICATION_KEY = read_render_secret("SENDGRID_WEBHOOK_VERIFICATION_KEY")
 
     # Stripe (Dues Account)
     STRIPE_SECRET_KEY = read_render_secret("STRIPE_SECRET_KEY")
