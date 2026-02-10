@@ -10,8 +10,15 @@ def read_render_secret(name):
     path = f"/etc/secrets/{name}"
     if os.path.exists(path):
         with open(path, "r") as f:
-            return f.read().strip()
-    return os.getenv(name)  # fallback for local dev
+            value = f.read().strip()
+            print(f"🔍 DEBUG: Loaded {name} from secret file, len={len(value)}")
+            return value
+    env_value = os.getenv(name)
+    if env_value:
+        print(f"🔍 DEBUG: Loaded {name} from env var, len={len(env_value)}")
+    else:
+        print(f"⚠️ DEBUG: {name} not found in secret file or env var")
+    return env_value  # fallback for local dev
 
 class BaseConfig:
     SQLALCHEMY_DATABASE_URI = os.getenv(
