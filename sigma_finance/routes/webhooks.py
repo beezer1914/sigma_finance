@@ -412,6 +412,7 @@ def sendgrid_webhook():
 
     # SECURITY CHECK: Verify SendGrid signature (if configured)
     verification_key = current_app.config.get("SENDGRID_WEBHOOK_VERIFICATION_KEY")
+    current_app.logger.info(f"🔍 DEBUG: verification_key type={type(verification_key)}, len={len(verification_key) if verification_key else 0}, exists={bool(verification_key)}")
 
     if verification_key:
         try:
