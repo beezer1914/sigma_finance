@@ -429,10 +429,10 @@ def sendgrid_webhook():
             ec_public_key = event_webhook.convert_public_key_to_ecdsa(verification_key)
 
             verified = event_webhook.verify_signature(
-                ec_public_key,
                 payload,
                 signature,
-                timestamp
+                timestamp,
+                ec_public_key
             )
 
             if not verified:
