@@ -418,8 +418,8 @@ def sendgrid_webhook():
             from sendgrid.helpers.eventwebhook import EventWebhook, EventWebhookHeader
 
             payload = request.get_data(as_text=True)
-            signature = request.headers.get(EventWebhookHeader.SIGNATURE.value)
-            timestamp = request.headers.get(EventWebhookHeader.TIMESTAMP.value)
+            signature = request.headers.get(EventWebhookHeader.SIGNATURE)
+            timestamp = request.headers.get(EventWebhookHeader.TIMESTAMP)
 
             if not signature or not timestamp:
                 current_app.logger.error("❌ Missing signature or timestamp headers")
