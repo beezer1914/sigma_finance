@@ -17,6 +17,20 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Sensitive data - never commit
+*.xlsx
+*.xls
+*.csv
+*.pdf
+
+# Log files
+*.log
+sync_log.txt
+
+# Fix/seed scripts
+Fix Scripts/
+database/
 security_audit.py
 
 .claude/settings.local.json
