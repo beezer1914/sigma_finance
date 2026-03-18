@@ -72,7 +72,7 @@ def get_user_outstanding_balance(user_id):
         db.session.query(PaymentPlan)
         .filter(
             PaymentPlan.user_id == user_id,
-            PaymentPlan.status == "active"
+            PaymentPlan.status.ilike("active")
         )
         .first()
     )
@@ -271,7 +271,7 @@ def get_member_financial_summary(user_id):
     # Get active plan if exists
     active_plan = (
         PaymentPlan.query
-        .filter_by(user_id=user_id, status="Active")
+        .filter(PaymentPlan.user_id == user_id, PaymentPlan.status.ilike("active"))
         .first()
     )
     

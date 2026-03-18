@@ -200,7 +200,7 @@ def plan():
             installment_amount=installment_amount,
             expected_installments=num_payments,
             enforce_installments=False,
-            status="Active"
+            status="active"
         )
 
         db.session.add(plan)

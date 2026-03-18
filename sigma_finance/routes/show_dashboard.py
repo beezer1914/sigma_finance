@@ -23,7 +23,7 @@ def show_dashboard():
     # Fetch active payment plan, if any
     plan = (
         PaymentPlan.query
-        .filter_by(user_id=current_user.id, status="Active")
+        .filter(PaymentPlan.user_id == current_user.id, PaymentPlan.status.ilike("active"))
         .first()
     )
 

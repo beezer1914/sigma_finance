@@ -497,7 +497,7 @@ def dashboard_data():
     # Fetch active payment plan, if any
     plan_query = (
         PaymentPlan.query
-        .filter_by(user_id=current_user.id, status="Active")
+        .filter(PaymentPlan.user_id == current_user.id, PaymentPlan.status.ilike("active"))
         .first()
     )
 
@@ -626,7 +626,7 @@ def create_checkout_session():
     total_with_fees = calculate_total_with_fees(amount)
 
     # Get active plan if exists
-    plan = PaymentPlan.query.filter_by(user_id=current_user.id, status="Active").first()
+    plan = PaymentPlan.query.filter(PaymentPlan.user_id == current_user.id, PaymentPlan.status.ilike("active")).first()
 
     stripe.api_key = current_app.config["STRIPE_SECRET_KEY"]
 
@@ -708,9 +708,9 @@ def create_payment_plan():
         return jsonify({"error": "Invalid frequency"}), 400
 
     # Check if user already has an active plan
-    existing_plan = PaymentPlan.query.filter_by(
-        user_id=current_user.id,
-        status="Active"
+    existing_plan = PaymentPlan.query.filter(
+        PaymentPlan.user_id == current_user.id,
+        PaymentPlan.status.ilike("active")
     ).first()
 
     if existing_plan:
@@ -753,7 +753,7 @@ def create_payment_plan():
         installment_amount=installment_amount,
         expected_installments=num_payments,
         enforce_installments=False,
-        status="Active"
+        status="active"
     )
 
     try:
@@ -874,11 +874,11 @@ def get_all_members():
 
     # Payment plan filter
     if plan_filter == 'active':
-        query = query.join(PaymentPlan).filter(PaymentPlan.status == "Active")
+        query = query.join(PaymentPlan).filter(PaymentPlan.status.ilike("active"))
     elif plan_filter == 'none':
         # Users without active plans
         subquery = db.session.query(PaymentPlan.user_id).filter(
-            PaymentPlan.status == "Active"
+            PaymentPlan.status.ilike("active")
         ).subquery()
         query = query.filter(~User.id.in_(subquery))
 
@@ -892,8 +892,9 @@ def get_all_members():
     members_data = []
     for member in members:
         # Get active plan if exists
-        active_plan = PaymentPlan.query.filter_by(
-            user_id=member.id, status="Active"
+        active_plan = PaymentPlan.query.filter(
+            PaymentPlan.user_id == member.id,
+            PaymentPlan.status.ilike("active")
         ).first()
 
         # Calculate total paid
@@ -946,8 +947,9 @@ def get_member_detail(user_id):
     ).limit(20).all()
 
     # Get active plan details
-    active_plan = PaymentPlan.query.filter_by(
-        user_id=user_id, status="Active"
+    active_plan = PaymentPlan.query.filter(
+        PaymentPlan.user_id == user_id,
+        PaymentPlan.status.ilike("active")
     ).first()
 
     return jsonify({
