@@ -51,23 +51,12 @@ function Register() {
     return () => clearError();
   }, [clearError]);
 
-  // Debug: Watch successMessage changes
-  useEffect(() => {
-    console.log('successMessage state changed to:', successMessage);
-  }, [successMessage]);
-
-  // Debug: Log on every render
-  console.log('Register component rendering, successMessage:', successMessage, 'error:', error);
-
   const onSubmit = async (data: RegisterFormData) => {
-    // Clear any previous errors and success messages
     clearError();
     setSuccessMessage('');
 
-    // Get reCAPTCHA token
     const recaptchaToken = await executeRecaptcha('register');
 
-    console.log('Submitting registration...');
     const result = await registerUser(
       data.name,
       data.email,
@@ -76,154 +65,97 @@ function Register() {
       recaptchaToken
     );
 
-    console.log('Registration result:', result);
-
     if (result.success) {
-      console.log('Registration successful, user is now logged in');
-      // User is automatically logged in after registration, redirect to dashboard
       setSuccessMessage('Account created successfully! Redirecting to dashboard...');
       setTimeout(() => {
-        console.log('Redirecting to dashboard');
         navigate('/dashboard');
       }, 1000);
-    } else {
-      console.log('Registration failed:', result.error);
     }
   };
 
+  const fields = [
+    { id: 'name', label: 'Full Name', type: 'text', placeholder: 'John Doe', error: errors.name },
+    { id: 'email', label: 'Email', type: 'email', placeholder: 'your@email.com', error: errors.email },
+    { id: 'password', label: 'Password', type: 'password', placeholder: '••••••••', error: errors.password,
+      hint: 'Must be 12+ characters with uppercase, lowercase, digit, and special character' },
+    { id: 'confirmPassword', label: 'Confirm Password', type: 'password', placeholder: '••••••••', error: errors.confirmPassword },
+    { id: 'invite_code', label: 'Invite Code', type: 'text', placeholder: 'Your invite code', error: errors.invite_code },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Create Account
-        </h2>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md animate-slide-up">
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-royal-600 text-white font-heading font-bold text-lg mb-4 shadow-glow-blue">
+            ΣΔΣ
           </div>
-        )}
+          <h2 className="font-heading text-3xl font-semibold text-white tracking-tight">
+            Create Account
+          </h2>
+          <p className="mt-2 text-gray-400 font-body text-sm">
+            Join Sigma Finance
+          </p>
+        </div>
 
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-            {successMessage}
-          </div>
-        )}
+        {/* Register Card */}
+        <div className="glass-card p-8">
+          {error && (
+            <div className="alert-error mb-5">{error}</div>
+          )}
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              {...register('name')}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
+          {successMessage && (
+            <div className="alert-success mb-5">{successMessage}</div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {fields.map((field) => (
+              <div key={field.id}>
+                <label htmlFor={field.id} className="input-label">
+                  {field.label}
+                </label>
+                <input
+                  id={field.id}
+                  type={field.type}
+                  {...register(field.id as keyof RegisterFormData)}
+                  className={`input-field ${field.error ? 'error' : ''}`}
+                  placeholder={field.placeholder}
+                />
+                {field.error && (
+                  <p className="mt-1.5 text-sm text-rose-400">{field.error.message}</p>
+                )}
+                {field.hint && (
+                  <p className="mt-1.5 text-xs text-gray-500">{field.hint}</p>
+                )}
+              </div>
+            ))}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full btn-primary py-3 text-base mt-2 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
-              placeholder="John Doe"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
-            )}
-          </div>
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating Account...
+                </span>
+              ) : (
+                'Register'
+              )}
+            </button>
+          </form>
 
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              {...register('email')}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="your@email.com"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              {...register('password')}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-            )}
-            <p className="mt-1 text-xs text-gray-500">
-              Must be 12+ characters with uppercase, lowercase, digit, and special character
+          <div className="mt-6 text-center">
+            <p className="text-gray-500 text-sm">
+              Already have an account?{' '}
+              <Link to="/login" className="text-royal-400 hover:text-royal-300 font-medium transition-colors">
+                Login
+              </Link>
             </p>
           </div>
-
-          <div className="mb-4">
-            <label htmlFor="confirmPassword" className="block text-gray-700 font-medium mb-2">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              {...register('confirmPassword')}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
-            {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-500">{errors.confirmPassword.message}</p>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <label htmlFor="invite_code" className="block text-gray-700 font-medium mb-2">
-              Invite Code
-            </label>
-            <input
-              id="invite_code"
-              type="text"
-              {...register('invite_code')}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.invite_code ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Your invite code"
-            />
-            {errors.invite_code && (
-              <p className="mt-1 text-sm text-red-500">{errors.invite_code.message}</p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 px-4 rounded-lg font-medium text-white transition-colors ${
-              isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isLoading ? 'Creating Account...' : 'Register'}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline">
-              Login
-            </Link>
-          </p>
         </div>
       </div>
     </div>

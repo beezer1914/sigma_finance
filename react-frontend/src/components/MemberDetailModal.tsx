@@ -110,19 +110,19 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="modal-backdrop"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+      <div className="fixed inset-0 z-50 flex min-h-full items-center justify-center p-4 pointer-events-none">
+        <div className="relative bg-sigma-900 border border-surface-border rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden pointer-events-auto">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Member Details</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border">
+            <h2 className="text-xl font-bold text-white font-heading">Member Details</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-white transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -135,30 +135,30 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-                  <p className="text-gray-600">Loading member details...</p>
+                  <div className="w-10 h-10 border-2 border-royal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-gray-400">Loading member details...</p>
                 </div>
               </div>
             ) : error ? (
-              <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              <div className="alert-error">
                 {error}
               </div>
             ) : member ? (
               <div className="space-y-6">
                 {/* Success Message */}
                 {successMessage && (
-                  <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                  <div className="alert-success">
                     {successMessage}
                   </div>
                 )}
 
                 {/* Member Info - View or Edit Mode */}
                 {isEditMode ? (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Edit Member Details</h4>
+                  <div className="bg-surface border border-surface-border rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">Edit Member Details</h4>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="input-label">
                           Name
                         </label>
                         <input
@@ -166,11 +166,11 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="input-label">
                           Email
                         </label>
                         <input
@@ -178,18 +178,18 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-field"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="input-label">
                           Role
                         </label>
                         <select
                           name="role"
                           value={formData.role}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+                          className="input-field capitalize"
                         >
                           <option value="member">Member</option>
                           <option value="president">President</option>
@@ -202,14 +202,14 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="input-label">
                           Financial Status
                         </label>
                         <select
                           name="financial_status"
                           value={formData.financial_status}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 capitalize"
+                          className="input-field capitalize"
                         >
                           <option value="financial">Financial</option>
                           <option value="not financial">Not Financial</option>
@@ -217,7 +217,7 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="input-label">
                           Initiation Date
                         </label>
                         <input
@@ -225,7 +225,7 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                           name="initiation_date"
                           value={formData.initiation_date}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-field"
                         />
                       </div>
                       <div className="flex items-center">
@@ -235,28 +235,28 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                           name="active"
                           checked={formData.active}
                           onChange={handleInputChange}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 rounded border-surface-border bg-sigma-850 text-royal-600 focus:ring-royal-500 focus:ring-offset-0"
                         />
-                        <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                        <label htmlFor="active" className="ml-2 block text-sm text-gray-300">
                           Active Member
                         </label>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-surface border border-surface-border rounded-lg p-4">
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+                      <div className="w-16 h-16 bg-royal-600/20 rounded-full flex items-center justify-center text-2xl font-heading font-semibold text-royal-300">
                         {member.member?.name?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900">{member.member?.name}</h3>
-                        <p className="text-gray-600">{member.member?.email}</p>
+                        <h3 className="text-xl font-bold text-white">{member.member?.name}</h3>
+                        <p className="text-gray-400">{member.member?.email}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-sm text-gray-500 capitalize">{member.member?.role}</span>
-                          <span className="text-gray-300">|</span>
+                          <span className="text-gray-600">|</span>
                           {member.member?.is_neophyte ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="badge-neophyte">
                               Neophyte (Exempt)
                             </span>
                           ) : (
@@ -270,7 +270,7 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                           )}
                           {member.member?.initiation_date && (
                             <>
-                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-600">|</span>
                               <span className="text-sm text-gray-500">
                                 Initiated: {formatDate(member.member.initiation_date)}
                               </span>
@@ -284,31 +284,31 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
 
                 {/* Financial Summary */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Financial Summary</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Financial Summary</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-600 mb-1">Total Paid</p>
-                      <p className="text-lg font-bold text-green-600">
+                    <div className="bg-surface border border-surface-border rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Total Paid</p>
+                      <p className="text-lg font-mono font-semibold text-emerald-400">
                         {formatCurrency(member.financial_summary?.total_paid || 0)}
                       </p>
                     </div>
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-600 mb-1">Payments</p>
-                      <p className="text-lg font-bold text-blue-600">
+                    <div className="bg-surface border border-surface-border rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Payments</p>
+                      <p className="text-lg font-mono font-semibold text-royal-300">
                         {member.financial_summary?.payment_count || 0}
                       </p>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-600 mb-1">Last Payment</p>
-                      <p className="text-sm font-medium text-purple-600">
+                    <div className="bg-surface border border-surface-border rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Last Payment</p>
+                      <p className="text-sm font-medium text-gray-300">
                         {member.financial_summary?.last_payment
                           ? formatDate(member.financial_summary.last_payment)
                           : 'Never'}
                       </p>
                     </div>
-                    <div className="bg-red-50 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-600 mb-1">Plan Balance</p>
-                      <p className="text-lg font-bold text-red-600">
+                    <div className="bg-surface border border-surface-border rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Plan Balance</p>
+                      <p className="text-lg font-mono font-semibold text-rose-400">
                         {formatCurrency(member.financial_summary?.plan_balance || 0)}
                       </p>
                     </div>
@@ -318,24 +318,24 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                 {/* Active Plan */}
                 {member.active_plan && (
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Active Payment Plan</h4>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-lg font-semibold text-white mb-3">Active Payment Plan</h4>
+                    <div className="bg-royal-600/10 border border-royal-500/20 rounded-lg p-4">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Frequency</p>
-                          <p className="font-medium capitalize">{member.active_plan.frequency}</p>
+                          <p className="text-gray-400">Frequency</p>
+                          <p className="font-medium text-white capitalize">{member.active_plan.frequency}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Total Amount</p>
-                          <p className="font-medium">{formatCurrency(member.active_plan.total_amount)}</p>
+                          <p className="text-gray-400">Total Amount</p>
+                          <p className="font-mono font-semibold text-white">{formatCurrency(member.active_plan.total_amount)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Installment</p>
-                          <p className="font-medium">{formatCurrency(member.active_plan.installment_amount)}</p>
+                          <p className="text-gray-400">Installment</p>
+                          <p className="font-mono font-semibold text-white">{formatCurrency(member.active_plan.installment_amount)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Start Date</p>
-                          <p className="font-medium">{formatDate(member.active_plan.start_date)}</p>
+                          <p className="text-gray-400">Start Date</p>
+                          <p className="font-medium text-white">{formatDate(member.active_plan.start_date)}</p>
                         </div>
                       </div>
                     </div>
@@ -344,38 +344,38 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
 
                 {/* Payment History */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Recent Payments</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Recent Payments</h4>
                   {member.payments && member.payments.length > 0 ? (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                      <table className="min-w-full">
+                        <thead className="table-header">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th className="px-4 py-2.5 text-left">Date</th>
+                            <th className="px-4 py-2.5 text-left">Amount</th>
+                            <th className="px-4 py-2.5 text-left">Method</th>
+                            <th className="px-4 py-2.5 text-left">Type</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody>
                           {member.payments.map((payment) => (
-                            <tr key={payment.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-2 text-sm text-gray-900">
+                            <tr key={payment.id} className="table-row">
+                              <td className="table-cell">
                                 {formatDate(payment.date)}
                               </td>
-                              <td className="px-4 py-2 text-sm font-medium text-gray-900">
+                              <td className="table-cell font-mono font-semibold text-white">
                                 {formatCurrency(payment.amount)}
                               </td>
-                              <td className="px-4 py-2 text-sm">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                              <td className="table-cell">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-500/15 text-gray-300 border border-gray-500/20 capitalize">
                                   {payment.method}
                                 </span>
                               </td>
-                              <td className="px-4 py-2 text-sm">
+                              <td className="table-cell">
                                 <span
                                   className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${
                                     payment.payment_type === 'installment'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : 'bg-green-100 text-green-800'
+                                      ? 'bg-royal-500/15 text-royal-300 border border-royal-500/20'
+                                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
                                   }`}
                                 >
                                   {payment.payment_type}
@@ -387,7 +387,7 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                       </table>
                     </div>
                   ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <div className="text-center py-8 bg-surface border border-surface-border rounded-lg">
                       <p className="text-gray-500">No payments recorded yet.</p>
                     </div>
                   )}
@@ -397,24 +397,24 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex justify-between px-6 py-4 border-t border-surface-border bg-sigma-850/50">
             {isEditMode ? (
               <>
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="btn-secondary text-sm disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="btn-primary text-sm disabled:opacity-50 flex items-center gap-2"
                 >
                   {saving ? (
                     <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Saving...
                     </>
                   ) : (
@@ -426,13 +426,13 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
               <>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="btn-secondary text-sm"
                 >
                   Close
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="btn-primary text-sm"
                 >
                   Edit Member
                 </button>

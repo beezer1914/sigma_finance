@@ -31,38 +31,39 @@ function Header({ onLogout }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+      <header className="sticky top-0 z-40 border-b border-surface-border backdrop-blur-md bg-sigma-950/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-surface-hover transition-colors focus:outline-none focus:ring-2 focus:ring-royal-500"
               aria-label="Open menu"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
             {/* Logo and Brand */}
             <div className="flex items-center">
-              <Link to="/dashboard" className="flex items-center">
-                <h1 className="text-xl font-bold text-gray-900">Sigma Finance</h1>
+              <Link to="/dashboard" className="flex items-center gap-3 group">
+                <div className="w-8 h-8 rounded-lg bg-royal-600 flex items-center justify-center text-white font-heading font-bold text-sm group-hover:shadow-glow-blue transition-shadow">
+                  ΣΔΣ
+                </div>
+                <span className="font-heading text-xl font-semibold text-white tracking-tight hidden sm:block">
+                  Sigma Finance
+                </span>
               </Link>
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden md:flex items-center gap-1">
               {visibleLinks.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(link.to)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
+                  className={`nav-link ${isActive(link.to) ? 'active' : ''}`}
                 >
                   {link.label}
                 </Link>
@@ -70,27 +71,27 @@ function Header({ onLogout }: HeaderProps) {
             </nav>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/profile"
-                className="hidden sm:flex items-center space-x-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
+                className="hidden sm:flex items-center gap-3 hover:bg-surface-hover px-3 py-2 rounded-lg transition-all"
               >
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-blue-600">
+                <div className="w-8 h-8 bg-royal-600/20 border border-royal-500/30 rounded-full flex items-center justify-center text-sm font-semibold text-royal-300">
                   {user?.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-sm font-medium text-gray-200">{user?.name}</p>
                   <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
                 </div>
               </Link>
 
               <button
                 onClick={onLogout}
-                className="px-3 py-2 sm:px-4 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="px-3 py-2 sm:px-4 text-sm font-medium text-gray-400 hover:text-white border border-surface-border hover:border-rose-500/40 hover:bg-rose-500/10 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <span className="hidden sm:inline">Logout</span>
                 <svg className="sm:hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
             </div>
@@ -103,21 +104,26 @@ function Header({ onLogout }: HeaderProps) {
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            className="modal-backdrop !items-start !justify-start"
             onClick={() => setMobileMenuOpen(false)}
           />
 
           {/* Slide-out drawer */}
-          <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-out">
+          <div className="fixed inset-y-0 left-0 w-72 bg-sigma-900 border-r border-surface-border shadow-2xl transform transition-transform duration-300 ease-out animate-slide-in-right">
             {/* Drawer Header */}
-            <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+            <div className="flex items-center justify-between h-16 px-4 border-b border-surface-border">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-royal-600 flex items-center justify-center text-white font-heading font-bold text-xs">
+                  ΣΔΣ
+                </div>
+                <h2 className="font-heading text-lg font-semibold text-white">Menu</h2>
+              </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-surface-hover transition-colors"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -126,28 +132,28 @@ function Header({ onLogout }: HeaderProps) {
             <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center space-x-3 px-4 py-4 border-b border-gray-200 hover:bg-gray-50"
+              className="flex items-center gap-3 px-4 py-4 border-b border-surface-border hover:bg-surface-hover transition-colors"
             >
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg font-bold text-blue-600">
+              <div className="w-11 h-11 bg-royal-600/20 border border-royal-500/30 rounded-full flex items-center justify-center text-base font-semibold text-royal-300">
                 {user?.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
-                <p className="font-medium text-gray-900">{user?.name}</p>
+                <p className="font-medium text-gray-200">{user?.name}</p>
                 <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
               </div>
             </Link>
 
             {/* Navigation Links */}
-            <nav className="px-2 py-4 space-y-1">
+            <nav className="px-3 py-4 space-y-1">
               {visibleLinks.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                  className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                     isActive(link.to)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-royal-600/20 text-white border border-royal-500/20'
+                      : 'text-gray-400 hover:text-white hover:bg-surface-hover'
                   }`}
                 >
                   {link.label}
@@ -156,13 +162,13 @@ function Header({ onLogout }: HeaderProps) {
             </nav>
 
             {/* Bottom section */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-surface-border">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onLogout();
                 }}
-                className="w-full px-4 py-3 text-base font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="w-full px-4 py-3 text-sm font-medium text-gray-300 border border-surface-border hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-white rounded-lg transition-all"
               >
                 Logout
               </button>

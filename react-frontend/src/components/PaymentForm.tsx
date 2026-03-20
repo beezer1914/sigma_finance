@@ -75,34 +75,36 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }: PaymentFo
     }
   };
 
+  const isDisabled = isLoading || !amount || Number(amount) <= 0;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <div className="modal-backdrop p-4">
+      <div className="bg-sigma-900 border border-surface-border rounded-2xl shadow-card max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-heading font-semibold text-white">
             {paymentType === 'installment' ? 'Make Installment Payment' : 'Make One-Time Payment'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            className="text-gray-500 hover:text-white text-2xl font-bold transition-colors"
           >
-            ×
+            &times;
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="alert-error mb-4">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
-            <label htmlFor="amount" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="amount" className="input-label">
               Payment Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-mono font-semibold">
                 $
               </span>
               <input
@@ -111,31 +113,29 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }: PaymentFo
                 step="0.01"
                 min="1"
                 {...register('amount', { valueAsNumber: true })}
-                className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.amount ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`input-field pl-8 ${errors.amount ? 'error' : ''}`}
                 placeholder="0.00"
               />
             </div>
             {errors.amount && (
-              <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
+              <p className="mt-1 text-sm text-rose-400">{errors.amount.message}</p>
             )}
           </div>
 
           {Number(amount) > 0 && (
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <div className="mb-4 p-4 bg-surface rounded-xl border border-surface-border">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">Payment Amount:</span>
-                <span className="font-medium">{formatCurrency(amount)}</span>
+                <span className="text-gray-400">Payment Amount:</span>
+                <span className="font-mono font-semibold text-gray-300">{formatCurrency(amount)}</span>
               </div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">Processing Fee (2.9% + $0.30):</span>
-                <span className="font-medium">{formatCurrency(stripeFee)}</span>
+                <span className="text-gray-400">Processing Fee (2.9% + $0.30):</span>
+                <span className="font-mono font-semibold text-gray-300">{formatCurrency(stripeFee)}</span>
               </div>
-              <div className="border-t border-gray-200 pt-2 mt-2">
+              <div className="border-t border-surface-border pt-2 mt-2">
                 <div className="flex justify-between font-bold">
-                  <span>Total Amount:</span>
-                  <span className="text-blue-600">{formatCurrency(totalAmount)}</span>
+                  <span className="text-white">Total Amount:</span>
+                  <span className="text-royal-400 font-mono font-semibold">{formatCurrency(totalAmount)}</span>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -145,14 +145,14 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }: PaymentFo
           )}
 
           <div className="mb-6">
-            <label htmlFor="notes" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="notes" className="input-label">
               Notes (Optional)
             </label>
             <textarea
               id="notes"
               {...register('notes')}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field"
               placeholder="Add any notes about this payment..."
             ></textarea>
           </div>
@@ -161,28 +161,29 @@ function PaymentForm({ onClose, onSuccess, paymentType = 'one-time' }: PaymentFo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="btn-secondary flex-1"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isLoading || !amount || Number(amount) <= 0}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
-                isLoading || !amount || Number(amount) <= 0
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              disabled={isDisabled}
+              className={`btn-primary flex-1 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoading ? 'Processing...' : 'Continue to Payment'}
             </button>
           </div>
         </form>
 
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-800">
-            🔒 You'll be redirected to Stripe's secure checkout page to complete your payment.
-          </p>
+        <div className="mt-4 p-3 bg-royal-600/10 border border-royal-500/20 rounded-lg">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-royal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <p className="text-xs text-royal-300">
+              You'll be redirected to Stripe's secure checkout page to complete your payment.
+            </p>
+          </div>
         </div>
       </div>
     </div>

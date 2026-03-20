@@ -116,19 +116,19 @@ function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header onLogout={handleLogout} />
 
       <main className="max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-            <p className="text-gray-600">Manage your account information</p>
+            <h1 className="text-2xl font-heading font-bold text-white">Profile Settings</h1>
+            <p className="text-gray-400">Manage your account information</p>
           </div>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="btn-secondary"
           >
             Back to Dashboard
           </button>
@@ -136,12 +136,12 @@ function Profile() {
 
         {/* Alerts */}
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="alert-error">
             {error}
           </div>
         )}
         {success && (
-          <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          <div className="alert-success">
             {success}
           </div>
         )}
@@ -149,15 +149,15 @@ function Profile() {
         {/* Account Overview */}
         <Card>
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-3xl font-bold text-blue-600">
+            <div className="w-20 h-20 bg-royal-600/20 border border-royal-500/30 rounded-full flex items-center justify-center text-3xl font-bold text-royal-300">
               {user?.name?.charAt(0)?.toUpperCase() || '?'}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{user?.name}</h2>
-              <p className="text-gray-600">{user?.email}</p>
+              <h2 className="text-xl font-heading font-bold text-white">{user?.name}</h2>
+              <p className="text-gray-400">{user?.email}</p>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-500 capitalize">{user?.role}</span>
-                <span className="text-gray-300">|</span>
+                <span className="text-sm text-gray-400 capitalize">{user?.role}</span>
+                <span className="text-gray-600">|</span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                     user?.financial_status
@@ -170,9 +170,9 @@ function Profile() {
           </div>
 
           {user?.initiation_date && (
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-sm text-gray-600">
-                Member since: <span className="font-medium">{formatDate(user.initiation_date)}</span>
+            <div className="border-t border-surface-border pt-4">
+              <p className="text-sm text-gray-500">
+                Member since: <span className="font-medium text-gray-300">{formatDate(user.initiation_date)}</span>
               </p>
             </div>
           )}
@@ -181,11 +181,11 @@ function Profile() {
         {/* Profile Information */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Profile Information</h3>
+            <h3 className="text-lg font-heading font-bold text-white">Profile Information</h3>
             {!editingProfile && (
               <button
                 onClick={() => setEditingProfile(true)}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-royal-400 hover:text-royal-300 font-medium"
               >
                 Edit
               </button>
@@ -195,22 +195,22 @@ function Profile() {
           {editingProfile ? (
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="input-label">Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field w-full"
                   disabled={loading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="input-label">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field w-full"
                   disabled={loading}
                 />
               </div>
@@ -218,7 +218,7 @@ function Profile() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                  className="btn-primary disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -226,7 +226,7 @@ function Profile() {
                   type="button"
                   onClick={handleCancelProfileEdit}
                   disabled={loading}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
@@ -235,12 +235,12 @@ function Profile() {
           ) : (
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-gray-600">Name</p>
-                <p className="font-medium text-gray-900">{user?.name}</p>
+                <p className="text-sm text-gray-500">Name</p>
+                <p className="font-medium text-gray-300">{user?.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Email</p>
-                <p className="font-medium text-gray-900">{user?.email}</p>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="font-medium text-gray-300">{user?.email}</p>
               </div>
             </div>
           )}
@@ -249,11 +249,11 @@ function Profile() {
         {/* Change Password */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+            <h3 className="text-lg font-heading font-bold text-white">Change Password</h3>
             {!editingPassword && (
               <button
                 onClick={() => setEditingPassword(true)}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-royal-400 hover:text-royal-300 font-medium"
               >
                 Change
               </button>
@@ -263,39 +263,39 @@ function Profile() {
           {editingPassword ? (
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="input-label">
                   Current Password
                 </label>
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field w-full"
                   disabled={loading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="input-label">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field w-full"
                   placeholder="At least 6 characters"
                   disabled={loading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="input-label">
                   Confirm New Password
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field w-full"
                   disabled={loading}
                 />
               </div>
@@ -303,7 +303,7 @@ function Profile() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                  className="btn-primary disabled:opacity-50"
                 >
                   {loading ? 'Changing...' : 'Change Password'}
                 </button>
@@ -311,14 +311,14 @@ function Profile() {
                   type="button"
                   onClick={handleCancelPasswordEdit}
                   disabled={loading}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
               </div>
             </form>
           ) : (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500">
               Click "Change" to update your password.
             </p>
           )}

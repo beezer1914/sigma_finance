@@ -90,12 +90,12 @@ function TreasurerPayments() {
 
   if (loading && payments.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header onLogout={handleLogout} />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg text-gray-600">Loading payments...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-royal-600 border-t-transparent mb-4"></div>
+            <p className="text-lg text-gray-400 font-body">Loading payments...</p>
           </div>
         </div>
       </div>
@@ -103,19 +103,19 @@ function TreasurerPayments() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header onLogout={handleLogout} />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      <main className="page-container space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">All Payments</h1>
-            <p className="text-gray-600">{pagination.total} total payments</p>
+            <h1 className="font-heading text-2xl font-semibold text-white">All Payments</h1>
+            <p className="text-gray-400 font-body">{pagination.total} total payments</p>
           </div>
           <button
             onClick={() => navigate('/treasurer')}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="btn-secondary"
           >
             Back to Treasurer
           </button>
@@ -123,37 +123,31 @@ function TreasurerPayments() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Total Payments</p>
-              <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Page Results</p>
-              <p className="text-2xl font-bold text-blue-600">{payments.length}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Page Total</p>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(pageTotal)}</p>
-            </div>
-          </Card>
+          <div className="stat-card animate-slide-up stagger-1">
+            <p className="stat-label">Total Payments</p>
+            <p className="stat-value">{pagination.total}</p>
+          </div>
+          <div className="stat-card animate-slide-up stagger-2">
+            <p className="stat-label">Page Results</p>
+            <p className="stat-value">{payments.length}</p>
+          </div>
+          <div className="stat-card animate-slide-up stagger-3">
+            <p className="stat-label">Page Total</p>
+            <p className="stat-value gold">{formatCurrency(pageTotal)}</p>
+          </div>
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="animate-slide-up stagger-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="input-label">
                 Payment Type
               </label>
               <select
                 value={filters.paymentType}
                 onChange={(e) => setFilters({ ...filters, paymentType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="all">All Types</option>
                 <option value="one-time">One-Time</option>
@@ -162,13 +156,13 @@ function TreasurerPayments() {
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="input-label">
                 Payment Method
               </label>
               <select
                 value={filters.method}
                 onChange={(e) => setFilters({ ...filters, method: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="all">All Methods</option>
                 <option value="stripe">Stripe</option>
@@ -180,7 +174,7 @@ function TreasurerPayments() {
             <div className="flex items-end">
               <button
                 onClick={handleClearFilters}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium font-body text-gray-400 hover:text-white transition-colors"
               >
                 Clear Filters
               </button>
@@ -190,7 +184,7 @@ function TreasurerPayments() {
 
         {/* Error Display */}
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="alert-error">
             {error}
           </div>
         )}
@@ -201,59 +195,59 @@ function TreasurerPayments() {
             <>
               <div className="overflow-x-auto -mx-6 sm:mx-0">
                 <div className="inline-block min-w-full align-middle">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full">
+                    <thead className="table-header">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Date
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Member
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Amount
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Method
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Notes
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       {payments.map((payment) => (
-                        <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <tr key={payment.id} className="table-row">
+                          <td className="table-cell whitespace-nowrap">
                             {formatDate(payment.date)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900">{payment.user_name}</div>
-                            <div className="text-sm text-gray-500">{payment.user_email}</div>
+                          <td className="table-cell whitespace-nowrap">
+                            <div className="font-medium text-white">{payment.user_name}</div>
+                            <div className="text-xs text-gray-500">{payment.user_email}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                          <td className="table-cell whitespace-nowrap font-mono font-semibold text-gold-400">
                             {formatCurrency(payment.amount)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                          <td className="table-cell whitespace-nowrap">
+                            <span className="badge-info capitalize">
                               {payment.method}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="table-cell whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                              className={`capitalize ${
                                 payment.payment_type === 'installment'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-green-100 text-green-800'
+                                  ? 'badge-warning'
+                                  : 'badge-financial'
                               }`}
                             >
                               {payment.payment_type}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                          <td className="table-cell max-w-xs truncate text-gray-500">
                             {payment.notes || '-'}
                           </td>
                         </tr>
@@ -264,8 +258,8 @@ function TreasurerPayments() {
               </div>
 
               {/* Pagination */}
-              <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                <p className="text-sm text-gray-600">
+              <div className="mt-4 flex items-center justify-between border-t border-surface-border pt-4">
+                <p className="text-sm text-gray-400 font-body">
                   Showing {pagination.offset + 1} to{' '}
                   {Math.min(pagination.offset + pagination.limit, pagination.total)} of{' '}
                   {pagination.total} payments
@@ -274,10 +268,10 @@ function TreasurerPayments() {
                   <button
                     onClick={handlePrevPage}
                     disabled={pagination.offset === 0}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium font-body rounded-lg transition-colors ${
                       pagination.offset === 0
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-sigma-850 text-gray-600 cursor-not-allowed border border-surface-border'
+                        : 'btn-secondary'
                     }`}
                   >
                     Previous
@@ -285,10 +279,10 @@ function TreasurerPayments() {
                   <button
                     onClick={handleNextPage}
                     disabled={!pagination.hasMore}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium font-body rounded-lg transition-colors ${
                       !pagination.hasMore
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-sigma-850 text-gray-600 cursor-not-allowed border border-surface-border'
+                        : 'btn-secondary'
                     }`}
                   >
                     Next
@@ -298,9 +292,13 @@ function TreasurerPayments() {
             </>
           ) : (
             <div className="text-center py-12">
-              <div className="text-5xl mb-4">💳</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Payments Found</h3>
-              <p className="text-gray-600">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-royal-500/15 border border-royal-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-royal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-heading font-medium text-white mb-2">No Payments Found</h3>
+              <p className="text-gray-400 font-body">
                 {filters.paymentType !== 'all' || filters.method !== 'all'
                   ? 'No payments match your current filters.'
                   : 'No payments in the system yet.'}

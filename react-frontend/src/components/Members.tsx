@@ -124,12 +124,12 @@ function Members() {
 
   if (loading && members.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header onLogout={handleLogout} />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg text-gray-600">Loading members...</p>
+            <div className="w-10 h-10 border-2 border-royal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading members...</p>
           </div>
         </div>
       </div>
@@ -137,15 +137,15 @@ function Members() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header onLogout={handleLogout} />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      <main className="page-container space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Members</h1>
-            <p className="text-gray-600">
+            <h1 className="font-heading">Members</h1>
+            <p className="text-gray-400 mt-1">
               {pagination.total} total members
             </p>
           </div>
@@ -153,17 +153,17 @@ function Members() {
             {delinquentCount > 0 && (
               <button
                 onClick={handleShowDelinquent}
-                className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm font-medium text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-lg hover:bg-rose-500/20 transition-colors flex items-center gap-2"
               >
                 <span>Delinquent</span>
-                <span className="bg-red-600 text-white px-2 py-0.5 rounded-full text-xs">
+                <span className="bg-rose-600 text-white px-2 py-0.5 rounded-full text-xs">
                   {delinquentCount}
                 </span>
               </button>
             )}
             <button
               onClick={() => navigate('/treasurer')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary text-sm"
             >
               Back to Treasurer
             </button>
@@ -174,7 +174,7 @@ function Members() {
         <Card>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="input-label">
                 Search Members
               </label>
               <input
@@ -182,17 +182,17 @@ function Members() {
                 placeholder="Search by name or email..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="input-label">
                 Financial Status
               </label>
               <select
                 value={filters.status}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="all">All Members</option>
                 <option value="financial">Financial</option>
@@ -201,13 +201,13 @@ function Members() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="input-label">
                 Payment Plan
               </label>
               <select
                 value={filters.hasPlan}
                 onChange={(e) => setFilters({ ...filters, hasPlan: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="all">All</option>
                 <option value="active">Active Plan</option>
@@ -217,7 +217,7 @@ function Members() {
             <div className="flex items-end">
               <button
                 onClick={handleClearFilters}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors"
               >
                 Clear Filters
               </button>
@@ -227,7 +227,7 @@ function Members() {
 
         {/* Error Display */}
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="alert-error">
             {error}
           </div>
         )}
@@ -238,48 +238,48 @@ function Members() {
             <>
               <div className="overflow-x-auto -mx-6 sm:mx-0">
                 <div className="inline-block min-w-full align-middle">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full">
+                    <thead className="table-header">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Name
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Email
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Total Paid
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Plan
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3.5 text-left">
                           Balance
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       {members.map((member) => (
                         <tr
                           key={member.id}
                           onClick={() => setSelectedMemberId(member.id)}
-                          className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                            isDelinquent(member) ? 'bg-red-50 border-l-4 border-l-red-500' : ''
+                          className={`table-row cursor-pointer ${
+                            isDelinquent(member) ? 'bg-rose-500/10 border-l-4 border-l-rose-500' : ''
                           }`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900">{member.name}</div>
-                            <div className="text-sm text-gray-500 capitalize">{member.role}</div>
+                          <td className="table-cell whitespace-nowrap">
+                            <div className="font-medium text-white">{member.name}</div>
+                            <div className="text-xs text-gray-500 capitalize">{member.role}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="table-cell whitespace-nowrap">
                             {member.email}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="table-cell whitespace-nowrap">
                             {member.is_neophyte ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <span className="badge-neophyte">
                                 Neophyte (Exempt)
                               </span>
                             ) : (
@@ -292,27 +292,27 @@ function Members() {
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="table-cell whitespace-nowrap font-mono font-semibold text-white">
                             {formatCurrency(member.total_paid)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="table-cell whitespace-nowrap">
                             {member.has_active_plan ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <span className="badge-info">
                                 Active
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500/15 text-gray-400 border border-gray-500/20">
                                 None
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="table-cell whitespace-nowrap">
                             {member.has_active_plan ? (
-                              <span className="font-medium text-red-600">
+                              <span className="font-mono font-semibold text-rose-400">
                                 {formatCurrency(member.plan_balance)}
                               </span>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-gray-500">-</span>
                             )}
                           </td>
                         </tr>
@@ -323,8 +323,8 @@ function Members() {
               </div>
 
               {/* Pagination */}
-              <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                <p className="text-sm text-gray-600">
+              <div className="mt-4 flex items-center justify-between border-t border-surface-border pt-4">
+                <p className="text-sm text-gray-400">
                   Showing {pagination.offset + 1} to{' '}
                   {Math.min(pagination.offset + pagination.limit, pagination.total)} of{' '}
                   {pagination.total} members
@@ -335,8 +335,8 @@ function Members() {
                     disabled={pagination.offset === 0}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       pagination.offset === 0
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'opacity-50 cursor-not-allowed border border-surface-border text-gray-500'
+                        : 'border border-surface-border text-gray-300 hover:bg-surface-hover'
                     }`}
                   >
                     Previous
@@ -346,8 +346,8 @@ function Members() {
                     disabled={!pagination.hasMore}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       !pagination.hasMore
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'opacity-50 cursor-not-allowed border border-surface-border text-gray-500'
+                        : 'border border-surface-border text-gray-300 hover:bg-surface-hover'
                     }`}
                   >
                     Next
@@ -357,9 +357,13 @@ function Members() {
             </>
           ) : (
             <div className="text-center py-12">
-              <div className="text-5xl mb-4">👥</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Members Found</h3>
-              <p className="text-gray-600">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-royal-600/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-royal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">No Members Found</h3>
+              <p className="text-gray-400">
                 {filters.search || filters.status !== 'all' || filters.hasPlan !== 'all'
                   ? 'No members match your current filters.'
                   : 'No members in the system yet.'}

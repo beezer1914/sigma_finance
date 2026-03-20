@@ -45,12 +45,12 @@ export const getStatusColor = (status) => {
   const statusLower = status?.toLowerCase();
 
   if (statusLower === 'financial') {
-    return 'bg-green-100 text-green-800';
+    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20';
   } else if (statusLower === 'not financial') {
-    return 'bg-red-100 text-red-800';
+    return 'bg-rose-500/15 text-rose-400 border border-rose-500/20';
   } else if (statusLower === 'neophyte') {
-    return 'bg-blue-100 text-blue-800';
+    return 'bg-royal-500/15 text-royal-300 border border-royal-500/20';
   }
 
-  return 'bg-gray-100 text-gray-800';
+  return 'bg-gray-500/15 text-gray-400 border border-gray-500/20';
 };

@@ -30,8 +30,11 @@ function App() {
   // Show loading screen while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="w-10 h-10 border-2 border-royal-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-body text-gray-400 tracking-wide uppercase">Loading</p>
+        </div>
       </div>
     );
   }

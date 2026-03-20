@@ -122,20 +122,20 @@ function Invites() {
   const getStatusBadge = (invite) => {
     if (invite.used) {
       return (
-        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+        <span className="px-2 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
           Used
         </span>
       );
     }
     if (invite.is_expired) {
       return (
-        <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
+        <span className="px-2 py-1 text-xs font-medium rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
           Expired
         </span>
       );
     }
     return (
-      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+      <span className="px-2 py-1 text-xs font-medium rounded-full bg-royal-500/10 text-royal-300 border border-royal-500/20">
         Available
       </span>
     );
@@ -143,12 +143,12 @@ function Invites() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header onLogout={handleLogout} />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg text-gray-600">Loading invites...</p>
+            <div className="w-10 h-10 border-2 border-royal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-gray-400">Loading invites...</p>
           </div>
         </div>
       </div>
@@ -156,15 +156,15 @@ function Invites() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header onLogout={handleLogout} />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      <main className="page-container space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Invite Codes</h1>
-            <p className="text-gray-600">Generate and manage member invite codes</p>
+            <h1 className="text-2xl font-heading font-bold text-white">Invite Codes</h1>
+            <p className="text-gray-400">Generate and manage member invite codes</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -172,13 +172,13 @@ function Invites() {
                 setShowCreateModal(true);
                 setCreatedInvite(null);
               }}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn-primary"
             >
               Create Invite
             </button>
             <button
               onClick={() => navigate('/treasurer')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary"
             >
               Back to Treasurer
             </button>
@@ -187,17 +187,17 @@ function Invites() {
 
         {/* Alerts */}
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="alert-error">
             {error}
-            <button onClick={() => setError(null)} className="ml-2 font-bold">
+            <button onClick={() => setError(null)} className="ml-2 font-bold cursor-pointer">
               &times;
             </button>
           </div>
         )}
         {success && (
-          <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          <div className="alert-success">
             {success}
-            <button onClick={() => setSuccess(null)} className="ml-2 font-bold">
+            <button onClick={() => setSuccess(null)} className="ml-2 font-bold cursor-pointer">
               &times;
             </button>
           </div>
@@ -205,40 +205,32 @@ function Invites() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Total Created</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Used</p>
-              <p className="text-2xl font-bold text-green-600">{stats?.used || 0}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Available</p>
-              <p className="text-2xl font-bold text-blue-600">{stats?.unused || 0}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Expired</p>
-              <p className="text-2xl font-bold text-red-600">{stats?.expired || 0}</p>
-            </div>
-          </Card>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Total Created</p>
+            <p className="text-2xl font-mono font-semibold text-white">{stats?.total || 0}</p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Used</p>
+            <p className="text-2xl font-mono font-semibold text-emerald-400">{stats?.used || 0}</p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Available</p>
+            <p className="text-2xl font-mono font-semibold text-royal-300">{stats?.unused || 0}</p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Expired</p>
+            <p className="text-2xl font-mono font-semibold text-rose-400">{stats?.expired || 0}</p>
+          </div>
         </div>
 
         {/* Invites List */}
         <Card>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h3 className="text-lg font-bold text-gray-900">All Invite Codes</h3>
+            <h3 className="text-lg font-heading font-bold text-white">All Invite Codes</h3>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field"
             >
               <option value="">All Status</option>
               <option value="unused">Available</option>
@@ -253,44 +245,44 @@ function Invites() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="table-header">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Code
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Expires
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Used By
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {invites.map((invite) => (
-                    <tr key={invite.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={invite.id} className="table-row">
+                      <td className="table-cell whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                          <code className="font-mono text-sm bg-sigma-800 px-2 py-1 rounded text-royal-300">
                             {invite.code}
                           </code>
                           {!invite.used && !invite.is_expired && (
                             <button
                               onClick={() => handleCopyCode(invite.code)}
-                              className="text-gray-400 hover:text-blue-600"
+                              className="text-gray-500 hover:text-royal-400"
                               title="Copy code"
                             >
                               <svg
@@ -310,34 +302,34 @@ function Invites() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900 capitalize">{invite.role}</span>
+                      <td className="table-cell whitespace-nowrap">
+                        <span className="text-sm text-gray-300 capitalize">{invite.role}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(invite)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="table-cell whitespace-nowrap">{getStatusBadge(invite)}</td>
+                      <td className="table-cell whitespace-nowrap text-sm text-gray-400">
                         {invite.created_at ? formatDate(invite.created_at) : '-'}
                         {invite.created_by && (
-                          <span className="block text-xs text-gray-400">
+                          <span className="block text-xs text-gray-500">
                             by {invite.created_by}
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="table-cell whitespace-nowrap text-sm text-gray-400">
                         {invite.expires_at ? formatDate(invite.expires_at) : 'Never'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="table-cell whitespace-nowrap text-sm text-gray-400">
                         {invite.used_by || '-'}
                         {invite.used_at && (
-                          <span className="block text-xs text-gray-400">
+                          <span className="block text-xs text-gray-500">
                             {formatDate(invite.used_at)}
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="table-cell whitespace-nowrap text-sm">
                         {!invite.used && (
                           <button
                             onClick={() => handleDeleteInvite(invite.id)}
-                            className="text-red-600 hover:text-red-800 font-medium"
+                            className="text-rose-400 hover:text-rose-300 font-medium"
                           >
                             Delete
                           </button>
@@ -354,14 +346,14 @@ function Invites() {
 
       {/* Create Invite Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-backdrop">
+          <div className="bg-sigma-900 border border-surface-border rounded-2xl shadow-card max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Create Invite Code</h3>
+                <h3 className="text-lg font-heading font-bold text-white">Create Invite Code</h3>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-300"
                 >
                   <span className="text-2xl">&times;</span>
                 </button>
@@ -369,20 +361,20 @@ function Invites() {
 
               {createdInvite ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-                    <p className="text-sm text-green-700 mb-2">Invite code created!</p>
-                    <code className="text-2xl font-mono font-bold text-green-800 block mb-3">
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-center">
+                    <p className="text-sm text-emerald-400 mb-2">Invite code created!</p>
+                    <code className="text-2xl font-mono font-bold text-emerald-300 block mb-3">
                       {createdInvite.code}
                     </code>
                     <button
                       onClick={() => handleCopyCode(createdInvite.code)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      className="btn-primary text-sm"
                     >
                       Copy Code
                     </button>
                   </div>
-                  <p className="text-sm text-gray-600 text-center">
-                    Role: <span className="font-medium capitalize">{createdInvite.role}</span>
+                  <p className="text-sm text-gray-400 text-center">
+                    Role: <span className="font-medium text-gray-300 capitalize">{createdInvite.role}</span>
                     <br />
                     Expires: {createdInvite.expires_at ? formatDate(createdInvite.expires_at) : 'Never'}
                   </p>
@@ -391,7 +383,7 @@ function Invites() {
                       setCreatedInvite(null);
                       setShowCreateModal(false);
                     }}
-                    className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="btn-secondary w-full"
                   >
                     Done
                   </button>
@@ -399,7 +391,7 @@ function Invites() {
               ) : (
                 <form onSubmit={handleCreateInvite} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="input-label">
                       Email (optional)
                     </label>
                     <input
@@ -408,7 +400,7 @@ function Invites() {
                       onChange={(e) =>
                         setNewInvite((prev) => ({ ...prev, email: e.target.value }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-field w-full"
                       placeholder="Send invite to this email"
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -417,13 +409,13 @@ function Invites() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <label className="input-label">Role</label>
                     <select
                       value={newInvite.role}
                       onChange={(e) =>
                         setNewInvite((prev) => ({ ...prev, role: e.target.value }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-field w-full"
                     >
                       <option value="member">Member</option>
                       <option value="treasurer">Treasurer</option>
@@ -436,7 +428,7 @@ function Invites() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="input-label">
                       Expires In (days)
                     </label>
                     <select
@@ -447,7 +439,7 @@ function Invites() {
                           expires_in_days: parseInt(e.target.value),
                         }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-field w-full"
                     >
                       <option value={1}>1 day</option>
                       <option value={3}>3 days</option>
@@ -462,14 +454,14 @@ function Invites() {
                     <button
                       type="submit"
                       disabled={creating}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                      className="btn-primary flex-1 disabled:opacity-50"
                     >
                       {creating ? 'Creating...' : 'Create Invite'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="btn-secondary"
                     >
                       Cancel
                     </button>

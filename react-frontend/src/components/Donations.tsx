@@ -171,12 +171,12 @@ function Donations() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Header onLogout={handleLogout} />
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-lg text-gray-600">Loading donations...</p>
+            <div className="w-10 h-10 border-2 border-royal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-gray-400">Loading donations...</p>
           </div>
         </div>
       </div>
@@ -184,26 +184,26 @@ function Donations() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header onLogout={handleLogout} />
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      <main className="page-container space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Donations Report</h1>
-            <p className="text-gray-600">Track and manage external donations</p>
+            <h1 className="text-2xl font-heading font-bold text-white">Donations Report</h1>
+            <p className="text-gray-400">Track and manage external donations</p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+              className="btn-primary"
             >
               Add Donation
             </button>
             <button
               onClick={() => navigate('/reports')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary"
             >
               Back to Reports
             </button>
@@ -211,9 +211,9 @@ function Donations() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="alert-error">
             {error}
-            <button onClick={() => setError(null)} className="ml-2 font-bold">
+            <button onClick={() => setError(null)} className="ml-2 font-bold cursor-pointer">
               &times;
             </button>
           </div>
@@ -221,52 +221,44 @@ function Donations() {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Total Donated</p>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(summary?.total_donated || 0)}
-              </p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Total Donations</p>
-              <p className="text-2xl font-bold text-blue-600">{summary?.donation_count || 0}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Anonymous</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {summary?.anonymous_count || 0}
-              </p>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Average Donation</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {formatCurrency(
-                  summary?.donation_count > 0
-                    ? summary.total_donated / summary.donation_count
-                    : 0
-                )}
-              </p>
-            </div>
-          </Card>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Total Donated</p>
+            <p className="text-2xl font-mono font-semibold text-emerald-400">
+              {formatCurrency(summary?.total_donated || 0)}
+            </p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Total Donations</p>
+            <p className="text-2xl font-mono font-semibold text-royal-300">{summary?.donation_count || 0}</p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Anonymous</p>
+            <p className="text-2xl font-mono font-semibold text-gold-400">
+              {summary?.anonymous_count || 0}
+            </p>
+          </div>
+          <div className="stat-card text-center">
+            <p className="text-sm text-gray-400 mb-1">Average Donation</p>
+            <p className="text-2xl font-mono font-semibold text-emerald-400">
+              {formatCurrency(
+                summary?.donation_count > 0
+                  ? summary.total_donated / summary.donation_count
+                  : 0
+              )}
+            </p>
+          </div>
         </div>
 
         {/* Donations by Method */}
         {summary?.by_method && Object.keys(summary.by_method).length > 0 && (
           <Card>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Donations by Method</h3>
+            <h3 className="text-lg font-heading font-bold text-white mb-4">Donations by Method</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(summary.by_method).map(([method, data]: [string, any]) => (
-                <div key={method} className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 capitalize">{method}</p>
-                  <p className="text-xl font-bold text-gray-900">{data.count}</p>
-                  <p className="text-sm text-green-600">{formatCurrency(data.total)}</p>
+                <div key={method} className="text-center p-3 bg-surface border border-surface-border rounded-lg">
+                  <p className="text-sm text-gray-400 capitalize">{method}</p>
+                  <p className="text-xl font-mono font-semibold text-white">{data.count}</p>
+                  <p className="text-sm font-mono text-emerald-400">{formatCurrency(data.total)}</p>
                 </div>
               ))}
             </div>
@@ -276,32 +268,32 @@ function Donations() {
         {/* Monthly Trends */}
         {summary?.monthly_trends && summary.monthly_trends.length > 0 && (
           <Card>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Monthly Trends</h3>
+            <h3 className="text-lg font-heading font-bold text-white mb-4">Monthly Trends</h3>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="table-header">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Month
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Total
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Count
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {summary.monthly_trends.map((trend, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={index} className="table-row">
+                      <td className="table-cell whitespace-nowrap text-sm font-medium text-white">
                         {trend.month}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                      <td className="table-cell whitespace-nowrap text-sm font-mono font-semibold text-emerald-400">
                         {formatCurrency(trend.total)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="table-cell whitespace-nowrap text-sm text-gray-400">
                         {trend.count} donations
                       </td>
                     </tr>
@@ -315,12 +307,12 @@ function Donations() {
         {/* Filters and Donations List */}
         <Card>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h3 className="text-lg font-bold text-gray-900">All Donations</h3>
+            <h3 className="text-lg font-heading font-bold text-white">All Donations</h3>
             <div className="flex flex-wrap gap-3">
               <select
                 value={filters.anonymous}
                 onChange={(e) => handleFilterChange('anonymous', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="">All Donors</option>
                 <option value="false">Named</option>
@@ -329,7 +321,7 @@ function Donations() {
               <select
                 value={filters.method}
                 onChange={(e) => handleFilterChange('method', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field"
               >
                 <option value="">All Methods</option>
                 <option value="cash">Cash</option>
@@ -340,7 +332,7 @@ function Donations() {
               <button
                 onClick={handleExportCSV}
                 disabled={exporting}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="btn-secondary disabled:opacity-50"
               >
                 {exporting ? 'Exporting...' : 'Export CSV'}
               </button>
@@ -353,38 +345,38 @@ function Donations() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="table-header">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Donor
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Method
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="table-cell text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Notes
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {filteredDonations.map((donation) => (
-                    <tr key={donation.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <tr key={donation.id} className="table-row">
+                      <td className="table-cell whitespace-nowrap text-sm text-gray-300">
                         {formatDate(donation.date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="table-cell whitespace-nowrap">
                         {donation.anonymous ? (
                           <span className="text-sm text-gray-500 italic">Anonymous</span>
                         ) : (
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-white">
                               {donation.donor_name || 'Unknown'}
                             </p>
                             {donation.donor_email && (
@@ -393,15 +385,15 @@ function Donations() {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                      <td className="table-cell whitespace-nowrap text-sm font-mono font-semibold text-emerald-400">
                         {formatCurrency(donation.amount)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 capitalize">
+                      <td className="table-cell whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-sigma-800 text-gray-300 capitalize">
                           {donation.method}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                      <td className="table-cell text-sm text-gray-500 max-w-xs truncate">
                         {donation.notes || '-'}
                       </td>
                     </tr>
@@ -415,14 +407,14 @@ function Donations() {
 
       {/* Add Donation Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-backdrop">
+          <div className="bg-sigma-900 border border-surface-border rounded-2xl shadow-card max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Add Donation</h3>
+                <h3 className="text-lg font-heading font-bold text-white">Add Donation</h3>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-300"
                 >
                   <span className="text-2xl">&times;</span>
                 </button>
@@ -437,9 +429,9 @@ function Donations() {
                     onChange={(e) =>
                       setNewDonation((prev) => ({ ...prev, anonymous: e.target.checked }))
                     }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 rounded border-surface-border bg-sigma-800 text-royal-600 focus:ring-royal-500"
                   />
-                  <label htmlFor="anonymous" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="anonymous" className="ml-2 text-sm text-gray-300">
                     Anonymous donation
                   </label>
                 </div>
@@ -447,7 +439,7 @@ function Donations() {
                 {!newDonation.anonymous && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="input-label">
                         Donor Name
                       </label>
                       <input
@@ -456,12 +448,12 @@ function Donations() {
                         onChange={(e) =>
                           setNewDonation((prev) => ({ ...prev, donor_name: e.target.value }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-field w-full"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="input-label">
                         Donor Email (optional)
                       </label>
                       <input
@@ -470,7 +462,7 @@ function Donations() {
                         onChange={(e) =>
                           setNewDonation((prev) => ({ ...prev, donor_email: e.target.value }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-field w-full"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -478,7 +470,7 @@ function Donations() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="input-label">
                     Amount *
                   </label>
                   <div className="relative">
@@ -491,7 +483,7 @@ function Donations() {
                       onChange={(e) =>
                         setNewDonation((prev) => ({ ...prev, amount: e.target.value }))
                       }
-                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="input-field w-full pl-7"
                       placeholder="0.00"
                       required
                     />
@@ -499,7 +491,7 @@ function Donations() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="input-label">
                     Payment Method
                   </label>
                   <select
@@ -507,7 +499,7 @@ function Donations() {
                     onChange={(e) =>
                       setNewDonation((prev) => ({ ...prev, method: e.target.value }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field w-full"
                   >
                     <option value="cash">Cash</option>
                     <option value="check">Check</option>
@@ -517,7 +509,7 @@ function Donations() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="input-label">
                     Notes (optional)
                   </label>
                   <textarea
@@ -526,7 +518,7 @@ function Donations() {
                       setNewDonation((prev) => ({ ...prev, notes: e.target.value }))
                     }
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input-field w-full"
                     placeholder="Any additional notes..."
                   />
                 </div>
@@ -535,14 +527,14 @@ function Donations() {
                   <button
                     type="submit"
                     disabled={addingDonation}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+                    className="btn-primary flex-1 disabled:opacity-50"
                   >
                     {addingDonation ? 'Adding...' : 'Add Donation'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="btn-secondary"
                   >
                     Cancel
                   </button>
