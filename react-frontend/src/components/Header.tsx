@@ -104,7 +104,7 @@ function Header({ onLogout }: HeaderProps) {
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
           <div
-            className="modal-backdrop !items-start !justify-start"
+            className="fixed inset-0 bg-black/60"
             onClick={() => setMobileMenuOpen(false)}
           />
 
