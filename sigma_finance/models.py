@@ -46,6 +46,22 @@ class User(db.Model, UserMixin):
         except Exception:
             return None
         return User.query.get(data["user_id"])
+
+    def get_setup_token(self):
+        """Generate a 7-day token for newly imported members to set up their password."""
+        secret = str(current_app.config["SECRET_KEY"])
+        s = Serializer(secret, salt="account-setup")
+        return s.dumps({"user_id": self.id})
+
+    @staticmethod
+    def verify_setup_token(token):
+        secret = str(current_app.config["SECRET_KEY"])
+        s = Serializer(secret, salt="account-setup")
+        try:
+            data = s.loads(token, max_age=604800)  # 7 days
+        except Exception:
+            return None
+        return User.query.get(data["user_id"])
     
     def is_neophyte(self):
     # Check if explicitly marked as neophyte

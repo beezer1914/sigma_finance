@@ -89,6 +89,11 @@ export const authAPI = {
     const response = await api.post<{ success: boolean; message: string }>('/auth/reset-password', { token, password });
     return response.data;
   },
+
+  setupAccount: async (token: string, password: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post<{ success: boolean; message: string }>('/auth/setup-account', { token, password });
+    return response.data;
+  },
 };
 
 // ============================================================================
@@ -206,6 +211,30 @@ export const treasurerAPI = {
   // Get reports summary
   getReportsSummary: async (): Promise<any> => {
     const response = await api.get('/treasurer/reports/summary');
+    return response.data;
+  },
+
+  // Bulk import members from CSV data
+  bulkImportMembers: async (members: { name: string; email: string }[]): Promise<{
+    success: boolean;
+    created: { name: string; email: string }[];
+    skipped: { name: string; email: string; reason: string }[];
+    errors: { name: string; email: string; reason: string }[];
+  }> => {
+    const response = await api.post('/treasurer/members/bulk-import', { members });
+    return response.data;
+  },
+
+  // Send invoice emails to unpaid members
+  sendInvoices: async (userIds?: number[]): Promise<{
+    success: boolean;
+    sent_count: number;
+    failed_count: number;
+    sent: { user_id: number; name: string; email: string; amount: number }[];
+    failed: { user_id: number; name: string; email: string }[];
+  }> => {
+    const body = userIds ? { user_ids: userIds } : {};
+    const response = await api.post('/treasurer/send-invoices', body);
     return response.data;
   },
 };

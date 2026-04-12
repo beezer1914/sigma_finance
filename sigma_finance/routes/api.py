@@ -392,6 +392,48 @@ def reset_password():
         return jsonify({"error": "An error occurred while resetting password"}), 500
 
 
+@api_bp.route("/auth/setup-account", methods=["POST"])
+@limiter.limit("10 per hour")
+def setup_account():
+    """
+    Set password for a newly imported member using their account setup token.
+
+    Request JSON:
+        {
+            "token": "setup_token_here",
+            "password": "new_password123"
+        }
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    token = data.get("token")
+    new_password = data.get("password")
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and password are required"}), 400
+
+    user = User.verify_setup_token(token)
+    if not user:
+        return jsonify({"error": "Invalid or expired setup link"}), 400
+
+    is_valid, error_message = validate_password_strength(new_password)
+    if not is_valid:
+        return jsonify({"error": error_message}), 400
+
+    try:
+        user.set_password(new_password)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Account set up successfully"}), 200
+    except Exception as e:
+        import logging
+        logging.error(f"Account setup error: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return jsonify({"error": "An error occurred while setting up your account"}), 500
+
+
 @api_bp.route("/auth/user", methods=["GET"])
 @login_required
 def get_current_user():
@@ -919,6 +961,178 @@ def get_all_members():
             "offset": offset,
             "has_more": (offset + limit) < total
         }
+    }), 200
+
+
+@api_bp.route("/treasurer/members/bulk-import", methods=["POST"])
+@login_required
+def bulk_import_members():
+    """
+    Import multiple members at once and send each a setup email.
+
+    Request JSON:
+        {
+            "members": [
+                {"name": "John Doe", "email": "john@example.com"},
+                ...
+            ]
+        }
+
+    Returns:
+        JSON with created, skipped, and error counts.
+    """
+    if not is_treasurer():
+        return jsonify({"error": "Access denied"}), 403
+
+    from sigma_finance.utils.email_sender import send_account_setup_email
+
+    data = request.get_json()
+    if not data or "members" not in data:
+        return jsonify({"error": "members array is required"}), 400
+
+    incoming = data["members"]
+    if not isinstance(incoming, list) or len(incoming) == 0:
+        return jsonify({"error": "members must be a non-empty array"}), 400
+
+    if len(incoming) > 200:
+        return jsonify({"error": "Maximum 200 members per import"}), 400
+
+    created = []
+    skipped = []
+    errors = []
+
+    frontend_url = current_app.config.get("FRONTEND_URL", "https://sigma-finance-63gn.onrender.com")
+
+    for row in incoming:
+        name = (row.get("name") or "").strip()
+        email = (row.get("email") or "").strip().lower()
+
+        if not name or not email:
+            errors.append({"name": name, "email": email, "reason": "Name and email are required"})
+            continue
+
+        if "@" not in email:
+            errors.append({"name": name, "email": email, "reason": "Invalid email address"})
+            continue
+
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            skipped.append({"name": name, "email": email, "reason": "Email already registered"})
+            continue
+
+        try:
+            new_user = User(
+                name=name,
+                email=email,
+                role="member",
+                financial_status="not financial",
+                active=True,
+                status=True,
+            )
+            db.session.add(new_user)
+            db.session.flush()  # Get the id before commit
+
+            setup_token = new_user.get_setup_token()
+            setup_url = f"{frontend_url}/setup-account/{setup_token}"
+
+            db.session.commit()
+
+            send_account_setup_email(new_user, setup_url)
+            created.append({"name": name, "email": email})
+
+        except Exception as e:
+            import logging
+            logging.error(f"Bulk import error for {email}: {str(e)}", exc_info=True)
+            db.session.rollback()
+            errors.append({"name": name, "email": email, "reason": "Database error"})
+
+    return jsonify({
+        "success": True,
+        "created": created,
+        "skipped": skipped,
+        "errors": errors,
+    }), 200
+
+
+@api_bp.route("/treasurer/send-invoices", methods=["POST"])
+@login_required
+def send_invoices():
+    """
+    Send dues invoice emails to unpaid members.
+
+    Request JSON (all optional):
+        {
+            "user_ids": [1, 2, 3]   // omit to send to all eligible members
+        }
+
+    Eligible members: active, not financial, not neophyte.
+    """
+    if not is_treasurer():
+        return jsonify({"error": "Access denied"}), 403
+
+    from sigma_finance.utils.email_sender import send_invoice_email
+    from sigma_finance.services.stats import get_user_outstanding_balance
+    from datetime import datetime
+
+    data = request.get_json() or {}
+    user_ids = data.get("user_ids")  # Optional list
+
+    DUES_AMOUNT = 200
+
+    if user_ids is not None:
+        if not isinstance(user_ids, list) or len(user_ids) == 0:
+            return jsonify({"error": "user_ids must be a non-empty array"}), 400
+        members = User.query.filter(
+            User.id.in_(user_ids),
+            User.active == True
+        ).all()
+    else:
+        members = User.query.filter(
+            User.active == True,
+            User.financial_status == "not financial"
+        ).all()
+        # Exclude neophytes
+        members = [m for m in members if not m.is_neophyte()]
+
+    sent = []
+    failed = []
+
+    for member in members:
+        if member.is_neophyte():
+            continue
+
+        # Determine amount owed
+        active_plan = PaymentPlan.query.filter(
+            PaymentPlan.user_id == member.id,
+            PaymentPlan.status.ilike("active")
+        ).first()
+
+        if active_plan:
+            amount_owed = get_user_outstanding_balance(member.id)
+        else:
+            # Calculate remaining one-time dues for current year
+            current_year = datetime.utcnow().year
+            paid_this_year = db.session.query(func.sum(Payment.amount)).filter(
+                Payment.user_id == member.id,
+                db.extract("year", Payment.date) == current_year
+            ).scalar() or 0
+            amount_owed = max(0, DUES_AMOUNT - float(paid_this_year))
+
+        if amount_owed <= 0:
+            continue
+
+        status_code = send_invoice_email(member, amount_owed)
+        if status_code and status_code < 300:
+            sent.append({"user_id": member.id, "name": member.name, "email": member.email, "amount": amount_owed})
+        else:
+            failed.append({"user_id": member.id, "name": member.name, "email": member.email})
+
+    return jsonify({
+        "success": True,
+        "sent_count": len(sent),
+        "failed_count": len(failed),
+        "sent": sent,
+        "failed": failed,
     }), 200
 
 

@@ -6,6 +6,7 @@ import type { User } from '../types';
 import Header from './Header';
 import Card from './Card';
 import MemberDetailModal from './MemberDetailModal';
+import BulkImportModal from './BulkImportModal';
 import { formatCurrency, getStatusColor } from '../utils/formatters';
 
 function Members() {
@@ -33,6 +34,14 @@ function Members() {
 
   // Member detail modal
   const [selectedMemberId, setSelectedMemberId] = useState(null);
+
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
+
+  // Invoice modal
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceResult, setInvoiceResult] = useState<{ sent_count: number; failed_count: number } | null>(null);
 
   const fetchMembers = useCallback(async (offset = 0) => {
     try {
@@ -110,6 +119,19 @@ function Members() {
     setFilters({ search: '', status: 'not financial', hasPlan: 'none' });
   };
 
+  const handleSendInvoices = async () => {
+    setInvoiceLoading(true);
+    setInvoiceResult(null);
+    try {
+      const res = await treasurerAPI.sendInvoices();
+      setInvoiceResult({ sent_count: res.sent_count, failed_count: res.failed_count });
+    } catch (err: any) {
+      setInvoiceResult({ sent_count: 0, failed_count: -1 });
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
   // Check if member is delinquent (not financial + no active plan + not a neophyte)
   const isDelinquent = (member) => {
     // Neophytes are exempt from dues, never delinquent
@@ -149,7 +171,7 @@ function Members() {
               {pagination.total} total members
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {delinquentCount > 0 && (
               <button
                 onClick={handleShowDelinquent}
@@ -161,6 +183,24 @@ function Members() {
                 </span>
               </button>
             )}
+            <button
+              onClick={() => setShowInvoiceModal(true)}
+              className="px-4 py-2 text-sm font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Send Invoices
+            </button>
+            <button
+              onClick={() => setShowImport(true)}
+              className="px-4 py-2 text-sm font-medium text-royal-300 bg-royal-500/10 border border-royal-500/20 rounded-lg hover:bg-royal-500/20 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Import Members
+            </button>
             <button
               onClick={() => navigate('/treasurer')}
               className="btn-secondary text-sm"
@@ -380,6 +420,97 @@ function Members() {
           onClose={() => setSelectedMemberId(null)}
           onUpdate={() => fetchMembers(pagination.offset)}
         />
+      )}
+
+      {/* Bulk Import Modal */}
+      {showImport && (
+        <BulkImportModal
+          onClose={() => setShowImport(false)}
+          onImported={() => fetchMembers(0)}
+        />
+      )}
+
+      {/* Send Invoices Modal */}
+      {showInvoiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!invoiceLoading) { setShowInvoiceModal(false); setInvoiceResult(null); } }} />
+          <div className="relative glass-card w-full max-w-md animate-slide-up p-6 space-y-5">
+            {invoiceResult ? (
+              <>
+                <div className="text-center">
+                  {invoiceResult.failed_count === -1 ? (
+                    <>
+                      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-rose-500/20 mb-4">
+                        <svg className="w-7 h-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <h3 className="font-heading text-lg font-semibold text-white mb-2">Send Failed</h3>
+                      <p className="text-gray-400 text-sm">Something went wrong. Please try again.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/20 mb-4">
+                        <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h3 className="font-heading text-lg font-semibold text-white mb-2">Invoices Sent</h3>
+                      <p className="text-gray-400 text-sm">
+                        <span className="text-emerald-400 font-semibold">{invoiceResult.sent_count}</span> invoice{invoiceResult.sent_count !== 1 ? 's' : ''} sent successfully.
+                        {invoiceResult.failed_count > 0 && (
+                          <span className="text-rose-400 ml-1">{invoiceResult.failed_count} failed.</span>
+                        )}
+                      </p>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setShowInvoiceModal(false); setInvoiceResult(null); }}
+                  className="w-full btn-primary"
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h3 className="font-heading text-lg font-semibold text-white">Send Invoices</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    This will send a dues invoice email to every active member who is
+                    <strong className="text-white"> not financial</strong> and not a neophyte.
+                    Each email will show the amount they currently owe.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-sm text-amber-300">
+                  Members with an active payment plan will receive their remaining plan balance.
+                  All others will receive the standard dues amount.
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowInvoiceModal(false); setInvoiceResult(null); }}
+                    className="flex-1 btn-secondary"
+                    disabled={invoiceLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendInvoices}
+                    disabled={invoiceLoading}
+                    className={`flex-1 btn-primary ${invoiceLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {invoiceLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : 'Send Invoices'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
