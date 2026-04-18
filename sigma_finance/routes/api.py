@@ -885,7 +885,7 @@ def get_all_members():
         limit (int): Number of results (default: 50, max: 100)
         offset (int): Pagination offset (default: 0)
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.services.stats import get_user_outstanding_balance
@@ -1143,7 +1143,7 @@ def get_member_detail(user_id):
     Get detailed information about a specific member.
     Requires treasurer or admin role.
     """
-    if not is_treasurer():
+    if not has_report_access():
         return jsonify({"error": "Access denied"}), 403
 
     from sigma_finance.services.stats import get_member_financial_summary

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { treasurerAPI } from '../services/api';
 import { formatCurrency, formatDate, getStatusColor } from '../utils/formatters';
 
-function MemberDetailModal({ memberId, onClose, onUpdate }) {
+function MemberDetailModal({ memberId, onClose, onUpdate, canEdit = true }) {
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -430,12 +430,14 @@ function MemberDetailModal({ memberId, onClose, onUpdate }) {
                 >
                   Close
                 </button>
-                <button
-                  onClick={handleEdit}
-                  className="btn-primary text-sm"
-                >
-                  Edit Member
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={handleEdit}
+                    className="btn-primary text-sm"
+                  >
+                    Edit Member
+                  </button>
+                )}
               </>
             )}
           </div>
